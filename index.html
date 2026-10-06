@@ -69,6 +69,24 @@ nav.tabs button { border: 0; background: none; border-bottom: 3px solid transpar
 nav.tabs button .k { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; line-height: 17px; color: var(--muted); }
 nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 nav.tabs button[aria-selected="true"] .k { border-color: var(--accent); color: var(--accent); }
+/* the four steps were being read as labels, so people stopped at step 1: make them look clickable,
+   mark the ones not yet opened, and say out loud how many there are */
+.stepnote { width: 100%; margin-top: 11px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.stepnote b { color: var(--accent); }
+nav.tabs { gap: 6px; margin-top: 8px; padding-bottom: 3px; }
+nav.tabs button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 14px 7px 10px; color: var(--ink-2); }
+nav.tabs button:hover { border-color: var(--accent); color: var(--ink); }
+nav.tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+nav.tabs button[aria-selected="true"] .k { border-color: color-mix(in srgb, var(--accent-ink) 50%, transparent); color: var(--accent-ink); }
+nav.tabs button .k { position: relative; }
+nav.tabs button.todo .k::after { content: ''; position: absolute; top: -4px; right: -5px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); border: 1.5px solid var(--surface); }
+@keyframes nudge-k { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 35% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent); } }
+nav.tabs.nudge button.todo { animation: nudge-k 1.15s ease 2; }
+/* foot of every step: where you are in the four, and the way on */
+.foot-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 14px; }
+.foot-nav-n { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.foot-nav-b { display: flex; gap: 8px; flex-wrap: wrap; }
+.foot-nav-end { font-size: 13px; color: var(--muted); }
 main { padding-block: 26px 56px; }
 .view { display: flex; flex-direction: column; gap: 22px; }
 .view.enter > * { animation: rise .4s cubic-bezier(.2,.7,.2,1) both; }
@@ -440,6 +458,7 @@ pre.skill { margin: 0; font-family: var(--f-mono); font-size: 12.5px; line-heigh
   <div class="wrap top-in">
     <div class="brand"><b>AI Adoption in FP&amp;A, Accounting, and Banking Back Office</b><span><span class="brand-desc">Adoption plan and live demo &middot; </span>Made by Katrina Li</span></div>
     <div class="top-btns"><button class="btn sm" id="reset" type="button">Reset demo</button></div>
+    <div class="stepnote" id="stepnote"></div>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button role="tab" id="tab-method" aria-selected="true" aria-controls="v-method" data-v="method"><span class="k">1</span>The method</button>
       <button role="tab" id="tab-who" aria-selected="false" aria-controls="v-who" data-v="who"><span class="k">2</span>Who to enter through</button>
@@ -739,8 +758,44 @@ function show(v, fromHash) {
   if (!fromHash) { try { history.replaceState(null, '', '#' + v); } catch (e) {} window.scrollTo(0, 0); }
   if (v === 'method' && !chatPlayed) playChat();
   if (v === 'who' && !whoPlayed) setTimeout(whoPlay, 400);
+  stepSeen[v] = true; stepMark(); stepNote();
 }
 $$('nav.tabs button').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.v); }); });
+
+/* ---------------- four steps, made obvious ---------------- */
+/* three signals, no auto-advance: a live "step n of 4" line, a dot on each step not yet opened,
+   and a Back/Next pair at the foot of every panel so the way on is where the reading ends.
+   a deep link such as #live lands on step 3, so the count also says what has not been opened */
+var STEP_T = { method: 'The method', who: 'Who to enter through', live: 'Narrow entry workflows', where: 'Where to start' };
+var stepSeen = {};
+function stepCur() { return Math.max(0, VIEWS.indexOf(VIEWS.filter(function (k) { return !$('#v-' + k).hidden; })[0])); }
+function stepNote() {
+  var el = $('#stepnote'); if (!el) return;
+  var left = VIEWS.filter(function (k) { return !stepSeen[k]; }).length, n = VIEWS.length;
+  el.innerHTML = left
+    ? '<b>Step ' + (stepCur() + 1) + ' of ' + n + '.</b> This demo has ' + n + ' steps \u2014 click each one above, or use <b>Next</b> at the foot of the step. <b>' + left + '</b> still to open.'
+    : '<b>Step ' + (stepCur() + 1) + ' of ' + n + '.</b> You have opened all ' + n + ' steps.';
+}
+function stepMark() { VIEWS.forEach(function (k) { var b = $('#tab-' + k); if (b) b.classList.toggle('todo', !stepSeen[k]); }); }
+function stepNudge() {
+  if (REDUCED) return;
+  var nav = $('nav.tabs'); if (!nav || !VIEWS.filter(function (k) { return !stepSeen[k]; }).length) return;
+  nav.classList.remove('nudge'); void nav.offsetWidth; nav.classList.add('nudge');
+}
+function stepFoot() {
+  VIEWS.forEach(function (k, i) {
+    var sec = $('#v-' + k); if (!sec || $('.foot-nav', sec)) return;
+    var back = i > 0 ? '<button class="btn sm" type="button" data-go="' + VIEWS[i - 1] + '">&larr; ' + STEP_T[VIEWS[i - 1]] + '</button>' : '';
+    var next = i < VIEWS.length - 1
+      ? '<button class="btn sm pri" type="button" data-go="' + VIEWS[i + 1] + '">Next: ' + STEP_T[VIEWS[i + 1]] + ' &rarr;</button>'
+      : '<span class="foot-nav-end">Last of the ' + VIEWS.length + ' steps.</span>';
+    var f = document.createElement('div');
+    f.className = 'foot-nav';
+    f.innerHTML = '<span class="foot-nav-n">Step ' + (i + 1) + ' of ' + VIEWS.length + ' \u00b7 ' + STEP_T[k] + '</span><span class="foot-nav-b">' + back + next + '</span>';
+    sec.appendChild(f);
+    $$('button[data-go]', f).forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.go); }); });
+  });
+}
 
 /* ---------------- tab 1 ---------------- */
 /* the new-way chat plays like a live conversation: typing, then the message */
@@ -1233,8 +1288,10 @@ $('#reset').addEventListener('click', function () {
   toast('Demo reset');
 });
 renderWF(false); renderSide();
+stepFoot();
 var h0 = (location.hash || '').replace('#', '');
 show(VIEWS.indexOf(h0) >= 0 ? h0 : 'method', true);
+stepNudge();
 window.addEventListener('hashchange', function () { var h = (location.hash || '').replace('#', ''); if (VIEWS.indexOf(h) >= 0) show(h, true); });
 })();
 </script>
