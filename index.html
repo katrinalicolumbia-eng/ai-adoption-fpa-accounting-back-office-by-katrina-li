@@ -1,0 +1,1242 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>AI Adoption in FP&amp;A, Accounting, and Banking Back Office</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap">
+<style>
+/* Layout: a controller's workpaper. Tabs follow the talk (method, who, live workflows, where to start);
+   the live tab is a run log on the left and a running ledger of what Claude has learned on the right. */
+:root {
+  --bg: #F3F4F0; --surface: #FFFFFF; --surface-2: #EEF0EA; --ink: #1B2230; --ink-2: #3D4656; --muted: #646E7E;
+  --line: #D9DCD3; --line-2: #E7E9E3;
+  --accent: #B0442A; --accent-soft: #F7E4DD; --accent-ink: #FFFFFF;
+  --navy: #2B5884; --navy-soft: #E0E9F2;
+  --good: #1D7449; --good-soft: #DCEFE3;
+  --ask: #8E5D00; --ask-soft: #FAEFD4; --ask-line: #E6C77E;
+  --bad: #A8322B; --bad-soft: #F8E0DD;
+  --dark: #1B2230; --dark-ink: #F2F3F0; --dark-muted: #AEB6C4;
+  --shadow: 0 1px 2px rgba(27, 34, 48, .06), 0 6px 18px rgba(27, 34, 48, .06);
+  --f-head: 'IBM Plex Serif', Georgia, 'Times New Roman', serif;
+  --f-body: 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151B; --surface: #191E26; --surface-2: #1F2530; --ink: #E8EBF0; --ink-2: #BAC2CE; --muted: #8D97A6;
+    --line: #2D3440; --line-2: #252B36;
+    --accent: #E4876A; --accent-soft: #3A231B; --accent-ink: #1A0F0B;
+    --navy: #86AEDA; --navy-soft: #1B2A3B;
+    --good: #5FC690; --good-soft: #15301F;
+    --ask: #E6B552; --ask-soft: #33290F; --ask-line: #6B5420;
+    --bad: #F07D74; --bad-soft: #3A1D1B;
+    --dark: #0B0E13; --dark-ink: #E8EBF0; --dark-muted: #95A0B0;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151B; --surface: #191E26; --surface-2: #1F2530; --ink: #E8EBF0; --ink-2: #BAC2CE; --muted: #8D97A6;
+  --line: #2D3440; --line-2: #252B36;
+  --accent: #E4876A; --accent-soft: #3A231B; --accent-ink: #1A0F0B;
+  --navy: #86AEDA; --navy-soft: #1B2A3B;
+  --good: #5FC690; --good-soft: #15301F;
+  --ask: #E6B552; --ask-soft: #33290F; --ask-line: #6B5420;
+  --bad: #F07D74; --bad-soft: #3A1D1B;
+  --dark: #0B0E13; --dark-ink: #E8EBF0; --dark-muted: #95A0B0;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+a { color: var(--navy); }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.num, .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1320px; margin: 0 auto; padding-inline: 20px; }
+
+/* header + tabs */
+.top { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; }
+.top-in { display: flex; align-items: center; gap: 16px; padding-block: 12px 0; flex-wrap: wrap; }
+.brand { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.brand b { font-family: var(--f-head); font-size: 20px; font-weight: 600; letter-spacing: -0.005em; }
+.brand span { font-size: 13px; color: var(--muted); }
+.top-btns { display: flex; gap: 8px; }
+nav.tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; width: 100%; margin-top: 6px; }
+nav.tabs button { border: 0; background: none; border-bottom: 3px solid transparent; padding: 9px 14px 10px; font-weight: 600; font-size: 14px; color: var(--muted); white-space: nowrap; display: inline-flex; gap: 8px; align-items: center; }
+nav.tabs button .k { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; line-height: 17px; color: var(--muted); }
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+nav.tabs button[aria-selected="true"] .k { border-color: var(--accent); color: var(--accent); }
+main { padding-block: 26px 56px; }
+.view { display: flex; flex-direction: column; gap: 22px; }
+.view.enter > * { animation: rise .4s cubic-bezier(.2,.7,.2,1) both; }
+.view.enter > *:nth-child(2) { animation-delay: .04s; } .view.enter > *:nth-child(3) { animation-delay: .08s; } .view.enter > *:nth-child(n+4) { animation-delay: .12s; }
+@keyframes rise { from { opacity: .001; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* type */
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.lede { display: flex; flex-direction: column; gap: 10px; max-width: 920px; }
+.lede h2 { font-family: var(--f-head); font-weight: 600; font-size: clamp(26px, 3.2vw, 38px); line-height: 1.14; letter-spacing: -0.01em; }
+.lede p { font-size: 17px; color: var(--ink-2); max-width: 74ch; }
+h3 { font-family: var(--f-head); font-weight: 600; font-size: 19px; line-height: 1.25; }
+h4 { font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.small { font-size: 13px; color: var(--muted); }
+.note { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+
+/* blocks */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+.panel-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.banner { background: var(--dark); color: var(--dark-ink); border: 1px solid var(--line); border-radius: 10px; padding: 13px 18px; font-size: 15px; line-height: 1.45; }
+.banner b { color: var(--accent); }
+
+/* controls */
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 14px; font-weight: 600; font-size: 14px; color: var(--ink); transition: border-color .15s, background .15s, transform .1s; }
+.btn:hover { border-color: var(--navy); }
+.btn:active { transform: translateY(1px); }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.pri:hover { filter: brightness(1.06); }
+.btn.navy { background: var(--navy); border-color: var(--navy); color: var(--surface); }
+.btn.sm { padding: 4px 10px; font-size: 13px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 7px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+.pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill.good { background: var(--good-soft); color: var(--good); }
+.pill.ask { background: var(--ask-soft); color: var(--ask); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.navy { background: var(--navy-soft); color: var(--navy); }
+.pill.acc { background: var(--accent-soft); color: var(--accent); }
+.pill.mute { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
+.tagrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 2px 8px; font-size: 12.5px; color: var(--ink-2); }
+
+/* tables */
+.tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.t { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.t th, table.t td { padding: 8px 10px; border-bottom: 1px solid var(--line-2); text-align: left; vertical-align: top; }
+table.t th { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 650; border-bottom-color: var(--line); white-space: nowrap; }
+table.t td.r, table.t th.r { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.t tr.tot td { font-weight: 700; border-top: 1px solid var(--ink-2); }
+table.t tr.hot td { background: var(--accent-soft); }
+table.t tr.okrow td { background: var(--good-soft); }
+
+/* ---------- tab 1: method ---------- */
+.ow { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 16px; align-items: start; }
+.oldway { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.oldway h4 { color: var(--muted); }
+.oldway ul { margin: 0; padding-left: 18px; color: var(--ink-2); display: flex; flex-direction: column; gap: 6px; }
+.newway { border: 2px solid var(--accent); background: var(--surface); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.newway h4 { color: var(--accent); }
+.chat { display: flex; flex-direction: column; gap: 8px; }
+.msg { max-width: 88%; border-radius: 10px; padding: 9px 12px; font-size: 14.5px; line-height: 1.45; }
+.msg b { display: block; font-size: 12.5px; margin-bottom: 2px; }
+.msg.c { background: var(--navy-soft); align-self: flex-start; }
+.msg.c b { color: var(--navy); }
+.msg.u { background: var(--dark); color: var(--dark-ink); align-self: flex-end; }
+.msg.u b { color: var(--accent); }
+.msg.sys { align-self: flex-start; background: none; padding: 0 2px; display: flex; gap: 6px; flex-wrap: wrap; }
+.msg.popin { animation: popin .5s cubic-bezier(.2,.9,.3,1.12) both; transform-origin: left bottom; }
+.msg.u.popin { transform-origin: right bottom; }
+@keyframes popin { from { opacity: 0; transform: translateY(10px) scale(.94); } to { opacity: 1; transform: none; } }
+.msg.typing-b { padding: 12px 14px; line-height: 1; }
+.msg.typing-b .typing i { background: currentColor; }
+.msg .t.streaming::after { content: "\258D"; color: var(--navy); margin-left: 1px; animation: blink 1s infinite; }
+.pill.pillpop { animation: pillpop .5s cubic-bezier(.2,.9,.3,1.35) both; }
+@keyframes pillpop { from { opacity: 0; transform: translateY(4px) scale(.7); } to { opacity: 1; transform: none; } }
+@keyframes msgin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.steps4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.st4 { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.st4 .n { font-family: var(--f-head); font-size: 30px; font-weight: 700; color: var(--accent); line-height: 1; }
+.st4 b { font-size: 15.5px; line-height: 1.3; }
+.st4 p { font-size: 14px; color: var(--ink-2); }
+.st4 .trick { font-size: 13.5px; color: var(--accent); }
+.ships { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.ship { border: 1px solid var(--line); border-radius: 9px; padding: 12px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ship b { font-size: 14px; }
+.ship span { font-size: 13px; color: var(--ink-2); line-height: 1.4; }
+.ship em { font-style: normal; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+.journey { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+.jstep { position: relative; padding: 10px 26px 10px 16px; color: #FFFFFF; font-weight: 700; font-size: 14px; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 10px 50%); min-height: 44px; display: flex; align-items: center; }
+.jstep:first-child { clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%); }
+.jstep.a { background: #B0442A; } .jstep.b { background: #C25A3D; } .jstep.c { background: #2B5884; } .jstep.d { background: #1B2230; }
+.jsub { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: 6px; }
+.jsub p { font-size: 13.5px; color: var(--ink-2); padding-right: 14px; }
+.mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+svg.ch { width: 100%; height: auto; display: block; overflow: visible; }
+svg.ch text { font-family: var(--f-body); font-size: 11px; fill: var(--muted); }
+svg.ch .lbl { fill: var(--ink); font-weight: 650; font-family: var(--f-mono); }
+svg.ch .grid { stroke: var(--line-2); stroke-width: 1; }
+svg.ch .ax { stroke: var(--line); stroke-width: 1; }
+
+/* ---------- tab 2: who ---------- */
+.org { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.cfo { background: var(--dark); color: var(--dark-ink); border-radius: 10px; padding: 12px 22px; text-align: center; width: min(560px, 100%); }
+.cfo b { font-size: 17px; display: block; }
+.cfo span { font-size: 13.5px; color: var(--dark-muted); }
+.up { display: flex; align-items: center; gap: 8px; color: var(--accent); font-weight: 700; font-size: 13.5px; padding: 6px 0; }
+.up i { width: 2px; height: 22px; background: var(--accent); display: block; position: relative; }
+.up i::before { content: ""; position: absolute; top: -2px; left: -5px; border: 6px solid transparent; border-bottom-color: var(--accent); border-top: 0; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1.15fr) 40px minmax(0, 1fr); align-items: stretch; width: 100%; }
+.team { border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.team.entry { border: 2px solid var(--accent); background: var(--surface); }
+.team .lab { align-self: flex-start; font-size: 12px; font-weight: 700; border-radius: 5px; padding: 1px 8px; background: var(--line-2); color: var(--ink-2); }
+.team.entry .lab { background: var(--accent); color: var(--accent-ink); }
+.team b { font-size: 16px; }
+.team .who { font-size: 13px; color: var(--muted); }
+.team p { font-size: 13.5px; color: var(--ink-2); }
+.team .feeds { font-size: 13px; font-weight: 700; color: var(--navy); margin-top: 2px; }
+.team.entry .feeds { color: var(--accent); }
+.arr { display: flex; align-items: center; justify-content: center; color: var(--navy); font-size: 20px; }
+.srcs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.src { font-size: 12px; border-radius: 5px; padding: 2px 7px; border: 1px dashed var(--line); color: var(--muted); transition: all .3s; }
+.src.on { border-style: solid; border-color: var(--good); background: var(--good-soft); color: var(--good); font-weight: 600; }
+.why3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.why3 .panel { display: flex; flex-direction: column; gap: 8px; }
+.why3 .panel.hl { border: 2px solid var(--accent); }
+.why3 ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--ink-2); }
+
+/* ---------- tab 3: live workflows ---------- */
+.live { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+.why-entry { background: var(--dark); color: var(--dark-ink); border: 1px solid var(--line); border-radius: 10px; padding: 11px 16px; font-size: 14.5px; line-height: 1.45; }
+.why-entry b { color: var(--accent); }
+.cmpbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cmpbar .small { margin-right: 4px; }
+.cmpbar button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 600; color: var(--ink-2); transition: background .2s, border-color .2s, color .2s; }
+.cmpbar button:hover { border-color: var(--navy); }
+.cmpbar button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--surface); }
+.wfpick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+.wfc { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 9px; min-width: 0; cursor: pointer; transition: border-color .25s, box-shadow .25s, transform .25s; }
+.wfc:hover { border-color: var(--navy); }
+.wfc:has(button[aria-pressed="true"]) { border: 2px solid var(--accent); padding: 13px; box-shadow: var(--shadow); }
+.wfc-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wfc-h .k { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.wfc:has(button[aria-pressed="true"]) .wfc-h .k { color: var(--accent); }
+.wfc-t { font-family: var(--f-head); font-size: 17px; font-weight: 600; line-height: 1.25; }
+.wfc-s { font-size: 13.5px; line-height: 1.45; color: var(--ink-2); border-radius: 8px; padding: 7px 9px; background: var(--surface-2); transition: opacity .25s, box-shadow .25s, background .25s; }
+.wfc-s ol { margin: 2px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.wfc-s b { color: var(--ink); }
+.wfc-l { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.wfc-s.ask { background: var(--ask-soft); color: var(--ink); }
+.wfc-s.ask .wfc-l { color: var(--ask); }
+.wfc-s.acc { background: var(--dark); color: var(--dark-ink); }
+.wfc-s.acc .wfc-l { color: var(--accent); }
+.wfpick.cmp .wfc-s { opacity: .32; }
+.wfpick.cmp .wfc-s.hl { opacity: 1; box-shadow: 0 0 0 2px var(--navy); }
+.wfc-f { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 2px; }
+.wfc-f .done { color: var(--good); font-weight: 700; }
+.wfc-f .btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+@supports (grid-template-rows: subgrid) {
+  .wfpick { row-gap: 12px; }
+  .wfc { display: grid; grid-template-rows: subgrid; grid-row: span 7; row-gap: 9px; align-content: start; }
+  .wfc .wfc-f { margin-top: 0; align-self: end; }
+}
+.wfhead { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+.wfhead p { font-size: 15px; color: var(--ink-2); max-width: 70ch; }
+.runlog { display: flex; flex-direction: column; gap: 10px; }
+.stp { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+.stp-h { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 14px; }
+.stp-h .i { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-mono); font-size: 12px; font-weight: 600; border: 2px solid var(--line); color: var(--muted); }
+.stp-h b { font-size: 15px; }
+.stp-h small { display: block; font-size: 12.5px; color: var(--muted); }
+.stp.done .stp-h .i { background: var(--good); border-color: var(--good); color: var(--surface); }
+.stp.act { border-color: var(--navy); box-shadow: var(--shadow); }
+.stp.act .stp-h .i { border-color: var(--navy); color: var(--navy); }
+.stp.todo { opacity: .55; background: transparent; border-style: dashed; }
+.stp.ask { border-color: var(--ask-line); }
+.stp.ask.act { border: 2px solid var(--ask); }
+.stp-b { padding: 4px 14px 14px 52px; display: flex; flex-direction: column; gap: 10px; }
+.stp-b[hidden] { display: none; }
+.next-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.scan { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.scan i { display: block; height: 100%; width: 0; background: var(--navy); border-radius: 3px; transition: width .12s linear; }
+.cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat { font-size: 12.5px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; color: var(--ink-2); background: var(--surface); transition: all .25s; }
+.cat.on { border-color: var(--navy); background: var(--navy-soft); color: var(--navy); }
+.bar { height: 10px; background: var(--surface-2); border-radius: 3px; min-width: 70px; position: relative; overflow: hidden; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--ink-2); }
+.bar i.hot { background: var(--accent); } .bar i.neg { background: var(--good); }
+.askbox { background: var(--ask-soft); border: 1px solid var(--ask-line); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.askbox .q { font-size: 16px; font-weight: 600; line-height: 1.4; }
+.askbox .lb { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ask); }
+.accbox { border: 1px solid var(--navy); background: var(--navy-soft); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.accbox .lb { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--navy); }
+.accbox dl { margin: 0; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 4px 12px; font-size: 14px; }
+.accbox dt { color: var(--muted); }
+.accbox dd { margin: 0; }
+.learned { border-left: 3px solid var(--good); padding: 6px 12px; background: var(--good-soft); border-radius: 0 8px 8px 0; font-size: 14px; }
+.learned b { color: var(--good); }
+.memo { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 16px 18px; font-size: 14.5px; display: flex; flex-direction: column; gap: 10px; }
+.memo .mh { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.memo .mh b { font-family: var(--f-head); font-size: 16.5px; }
+.concl { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; }
+.concl .cn { font-family: var(--f-head); font-weight: 700; font-size: 22px; color: var(--accent); line-height: 1.1; }
+.concl b { display: block; }
+.concl p { color: var(--ink-2); font-size: 14px; }
+.concl .ev { font-size: 12.5px; color: var(--muted); font-family: var(--f-mono); }
+.je { font-family: var(--f-mono); font-size: 13px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.je div { display: grid; grid-template-columns: 40px minmax(0, 1fr) 90px; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--line-2); }
+.je div:last-child { border-bottom: 0; }
+.je .cr { padding-left: 34px; }
+.je .h { background: var(--surface-2); font-family: var(--f-body); font-size: 12px; color: var(--muted); font-weight: 600; }
+.tick { font-family: var(--f-mono); font-weight: 700; color: var(--good); margin-left: 4px; }
+.ticklegend { font-size: 12.5px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+.mail { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 14.5px; overflow: hidden; }
+.mail .mh2 { background: var(--surface-2); padding: 7px 12px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.mail .mb { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.typing { display: inline-flex; gap: 4px; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+.typing i:nth-child(2) { animation-delay: .2s; } .typing i:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+
+/* learned sidebar */
+.side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 112px); display: flex; flex-direction: column; gap: 12px; }
+.side .panel { padding: 16px; }
+.ctr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ctr div { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 1px; }
+.ctr b { font-family: var(--f-mono); font-size: 24px; font-weight: 600; line-height: 1.1; }
+.ctr span { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.ctr .zero { border-color: var(--accent); background: var(--accent-soft); }
+.ctr .zero b { color: var(--accent); }
+.ctr div.bump { animation: bump .5s ease; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.05); background: var(--good-soft); } 100% { transform: scale(1); } }
+.lst { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.li { border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 10px; font-size: 13px; line-height: 1.4; background: var(--surface); animation: msgin .35s ease both; }
+.li small { display: block; color: var(--muted); font-size: 11.5px; }
+button.li { text-align: left; width: 100%; }
+button.li:hover { border-color: var(--navy); }
+.li .sk { font-family: var(--f-mono); font-weight: 600; color: var(--navy); }
+.empty { font-size: 13px; color: var(--muted); font-style: italic; }
+.drawer { position: fixed; inset: 0; z-index: 60; background: rgba(10, 14, 20, .45); display: flex; justify-content: flex-end; }
+.drawer-in { background: var(--surface); width: min(560px, 100%); height: 100%; overflow-y: auto; padding: 22px; padding-top: calc(env(safe-area-inset-top, 0px) + 22px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow); }
+pre.skill { margin: 0; font-family: var(--f-mono); font-size: 12.5px; line-height: 1.55; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 14px; white-space: pre-wrap; word-break: break-word; color: var(--ink); }
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); transform: translateX(-50%); background: var(--dark); color: var(--dark-ink); padding: 9px 16px; border-radius: 8px; font-size: 14px; z-index: 70; box-shadow: var(--shadow); max-width: 92vw; }
+
+/* ---------- tab 4: where ---------- */
+.focusbox { border: 2px solid var(--navy); border-radius: 10px; background: var(--surface); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.focusbox .lab { align-self: flex-start; background: var(--navy); color: var(--surface); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 5px; padding: 2px 9px; }
+.prio { font-size: 12px; font-weight: 700; border-radius: 5px; padding: 3px 9px; white-space: nowrap; display: inline-block; text-align: center; min-width: 78px; }
+.prio.first { background: var(--navy); color: var(--surface); }
+.prio.next { background: var(--navy-soft); color: var(--navy); }
+.prio.skip { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+.prio.rival { background: var(--bad-soft); color: var(--bad); }
+.prio.harder { background: var(--ask-soft); color: var(--ask); }
+.time3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.time3 .panel { display: flex; flex-direction: column; gap: 4px; }
+.time3 .panel.now { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.time3 .panel.now .small { color: var(--accent-ink); opacity: .85; }
+.meas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.meas .panel { display: flex; flex-direction: column; gap: 4px; }
+.meas b.big { font-family: var(--f-mono); font-size: 22px; font-weight: 600; line-height: 1.15; }
+.srclist { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); columns: 2; column-gap: 28px; }
+.srclist li { margin-bottom: 4px; break-inside: avoid; }
+.srclist a { color: var(--ink-2); }
+
+
+/* ---------- motion for the critical moments ---------- */
+.loop { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; }
+.ln { position: relative; border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px 14px; background: var(--surface); display: flex; flex-direction: column; gap: 3px; min-width: 0; transition: border-color .3s, background .3s, transform .3s, box-shadow .3s; }
+.ln:not(:last-child)::after { content: "\2192"; position: absolute; right: -19px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; transition: color .3s; }
+.ln .lnn { font-family: var(--f-mono); font-size: 12px; color: var(--muted); font-weight: 600; }
+.ln b { font-size: 14.5px; line-height: 1.3; }
+.ln span:not(.lnn) { font-size: 12.5px; color: var(--muted); }
+.ln .lnbar { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--accent); border-radius: 0 0 0 10px; }
+.ln.on { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-3px); box-shadow: var(--shadow); }
+.ln.on .lnbar { width: 100%; transition: width var(--lt, .9s) linear; }
+.ln.on .lnn, .ln.on::after { color: var(--accent); }
+.loopret { margin-top: 12px; border: 1px dashed var(--line); border-radius: 999px; padding: 5px 14px; font-size: 13px; color: var(--muted); text-align: center; transition: border-color .3s, color .3s, background .3s; }
+.loopret.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.lctr { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.lctr div { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; min-width: 0; }
+.lctr span { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.lctr b { font-family: var(--f-mono); font-size: 26px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.lctr .zero { border-color: var(--accent); background: var(--accent-soft); }
+.lctr .zero b { color: var(--accent); }
+.lctr div.bump, .ctr div.bump { animation: bump .55s ease; }
+.src.pop { animation: srcpop .5s ease both; }
+@keyframes srcpop { 0% { transform: scale(.7); opacity: .2; } 60% { transform: scale(1.12); } 100% { transform: none; opacity: 1; } }
+.arr.flow { color: var(--good); animation: nudge 1.6s ease-in-out infinite; }
+@keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+.arr.flow.l { animation-name: nudgel; }
+@keyframes nudgel { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-4px); } }
+.fly { position: fixed; left: 0; top: 0; z-index: 80; pointer-events: none; color: #FFFFFF; font-size: 12.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px; box-shadow: 0 6px 20px rgba(0,0,0,.25); transition: transform .8s cubic-bezier(.5,0,.2,1), opacity .8s ease; white-space: nowrap; }
+.fly.rule { background: #1D7449; } .fly.acc { background: #2B5884; } .fly.sk { background: #B0442A; }
+.li.landing { opacity: 0; }
+.li.landed { animation: land .7s ease; }
+@keyframes land { 0% { transform: scale(1.04); box-shadow: 0 0 0 3px var(--good-soft); } 100% { transform: none; box-shadow: none; } }
+.funnel { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+.funnel b { font-family: var(--f-mono); font-size: 24px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.funnel b.hot { color: var(--accent); }
+.rgrid { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 3px; max-width: 560px; }
+.rg { aspect-ratio: 1; border-radius: 2px; background: var(--surface-2); border: 1px solid var(--line); transition: background .25s, border-color .25s, opacity .6s, transform .4s; }
+.rg.read { background: var(--navy); border-color: var(--navy); }
+.rg.dim { opacity: .16; }
+.rg.cite { background: var(--accent); border-color: var(--accent); transform: scale(1.4); opacity: 1; position: relative; z-index: 1; }
+.citelist { display: flex; flex-wrap: wrap; gap: 6px; }
+.citelist span { font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--accent); color: var(--accent); border-radius: 5px; padding: 1px 7px; background: var(--accent-soft); }
+.memo.reveal .concl { animation: rise .5s cubic-bezier(.2,.7,.2,1) both; }
+.memo.reveal .concl:nth-of-type(3) { animation-delay: .45s; } .memo.reveal .concl:nth-of-type(4) { animation-delay: .9s; }
+.m2 { display: flex; flex-direction: column; gap: 8px; }
+.m2top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.m2top b { font-family: var(--f-mono); font-size: 26px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; transition: color .4s; }
+.m2top b.zero { color: var(--good); }
+.m2track { height: 22px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; }
+.m2fill { height: 100%; width: 100%; background: var(--accent); border-radius: 5px; transition: width 1.1s cubic-bezier(.4,.1,.2,1), background .4s; }
+.m2fill.zero { background: var(--good); }
+.m2chips { display: flex; flex-direction: column; gap: 6px; }
+.m2chip { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 10px; align-items: baseline; font-size: 14px; animation: msgin .4s ease both; }
+.m2chip b { font-family: var(--f-mono); color: var(--good); }
+.xlate { display: grid; grid-template-columns: minmax(0, .75fr) 36px minmax(0, 1.25fr); gap: 10px; align-items: start; }
+.xlate .said { background: var(--dark); color: var(--dark-ink); border-radius: 10px; padding: 12px 14px; font-size: 15px; line-height: 1.45; }
+.xlate .said small { display: block; color: var(--accent); font-weight: 700; font-size: 12px; margin-bottom: 3px; }
+.xlate .xarr { font-size: 24px; color: var(--accent); text-align: center; padding-top: 18px; }
+.xlate .book { display: flex; flex-direction: column; gap: 8px; }
+.xlate .book p { min-height: 1.45em; font-size: 14.5px; }
+.typing-caret::after { content: "\258D"; color: var(--accent); animation: blink 1s infinite; margin-left: 1px; }
+@media (max-width: 860px) {
+  .loop { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .ln:not(:last-child)::after { content: "\2193"; right: auto; left: 50%; top: auto; bottom: -19px; transform: translateX(-50%); }
+  .lctr { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .xlate { grid-template-columns: minmax(0, 1fr); }
+  .xlate .xarr { transform: rotate(90deg); padding-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+@media (max-width: 1080px) {
+  .live { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; }
+  .ships { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .ow, .grid2, .grid3, .why3, .time3 { grid-template-columns: minmax(0, 1fr); }
+  .steps4, .grid4, .meas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .teams { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .arr { transform: rotate(90deg); height: 24px; }
+  .journey, .jsub { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 6px; }
+  .jstep, .jstep:first-child { clip-path: none; border-radius: 6px; margin-right: 6px; }
+  .wfpick { grid-template-columns: minmax(0, 1fr); }
+  .wfc { cursor: default; }
+  .srclist { columns: 1; }
+  .brand .brand-desc { display: none; }
+  .brand b { font-size: 16px; line-height: 1.25; }
+}
+@media (max-width: 560px) {
+  .steps4, .grid4, .meas, .mini, .ships { grid-template-columns: minmax(0, 1fr); }
+  .journey, .jsub { grid-template-columns: minmax(0, 1fr); }
+  .stp-b { padding-left: 14px; }
+  .accbox dl { grid-template-columns: minmax(0, 1fr); }
+  .msg { max-width: 96%; }
+  .ctr b { font-size: 20px; }
+}
+</style>
+<header class="top">
+  <div class="wrap top-in">
+    <div class="brand"><b>AI Adoption in FP&amp;A, Accounting, and Banking Back Office</b><span><span class="brand-desc">Adoption plan and live demo &middot; </span>Made by Katrina Li</span></div>
+    <div class="top-btns"><button class="btn sm" id="reset" type="button">Reset demo</button></div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-method" aria-selected="true" aria-controls="v-method" data-v="method"><span class="k">1</span>The method</button>
+      <button role="tab" id="tab-who" aria-selected="false" aria-controls="v-who" data-v="who"><span class="k">2</span>Who to enter through</button>
+      <button role="tab" id="tab-live" aria-selected="false" aria-controls="v-live" data-v="live"><span class="k">3</span>Narrow entry workflows</button>
+      <button role="tab" id="tab-where" aria-selected="false" aria-controls="v-where" data-v="where"><span class="k">4</span>Where to start</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ 1 METHOD ============ -->
+<section class="view" id="v-method" role="tabpanel" aria-labelledby="tab-method">
+  <div class="lede">
+    <div class="eyebrow">The method</div>
+    <h2>Don&rsquo;t ask employees to write context. Earn it through one workflow that unlocks the next, and save it as skills as you go.</h2>
+    <p>Back-office work is reconciliation: every system has to tell the same story, and every number gets checked again. The logic for that lives in people&rsquo;s heads. Nobody will write it down, but they will grant access when a task needs it and answer a yes/no question in five seconds.</p>
+  </div>
+
+  <div class="panel" id="loop">
+    <div class="panel-h"><h3>The flywheel: one workflow earns the next</h3><span class="small">Month 1 &rarr; month 6, illustrative, one pilot bank</span></div>
+    <div class="loop" id="loop-nodes">
+      <div class="ln"><span class="lnn">1</span><b>A workflow runs</b><span>on the team&rsquo;s own monthly report</span><i class="lnbar"></i></div>
+      <div class="ln"><span class="lnn">2</span><b>Claude asks one question</b><span>yes or no, about 5 seconds</span><i class="lnbar"></i></div>
+      <div class="ln"><span class="lnn">3</span><b>A rule is saved</b><span>with a named owner</span><i class="lnbar"></i></div>
+      <div class="ln"><span class="lnn">4</span><b>Access is requested</b><span>read-only, with a live reason</span><i class="lnbar"></i></div>
+      <div class="ln"><span class="lnn">5</span><b>The next workflow opens</b><span>using the new data</span><i class="lnbar"></i></div>
+    </div>
+    <div class="loopret" id="loop-ret">&#8635; Next month: the same loop, with fewer questions</div>
+    <div class="lctr">
+      <div><span>Workflows Claude runs</span><b>1 &rarr; 9</b></div>
+      <div><span>Questions per month</span><b>12 &rarr; 3</b></div>
+      <div><span>Systems it can read</span><b>1 &rarr; 11</b></div>
+      <div class="zero"><span>Pages written by staff</span><b>0</b></div>
+    </div>
+  </div>
+
+  <div class="ow">
+    <div class="oldway">
+      <h4>Old way: ask staff to write skills or a full guide</h4>
+      <ul>
+        <li>It takes hours on top of the month-end close.</li>
+        <li>It goes stale within a quarter.</li>
+        <li>It makes the writer replaceable.</li>
+      </ul>
+      <p style="font-weight:600">So it never gets written.</p>
+    </div>
+    <div class="newway">
+      <div class="row" style="justify-content:space-between"><h4>New way: grant access, answer yes or no</h4><button class="btn sm" id="chat-play" type="button">Replay</button></div>
+      <div class="chat" id="chat1">
+        <div class="msg c"><b>Claude</b><span class="t">You&rsquo;ve cut Q4 revenue by 20% in each of the past 3 years. Is that because enterprise implementations slip into Q1? Do it again?</span></div>
+        <div class="msg u"><b>FP&amp;A lead</b><span class="t">Yes, only for enterprise contracts signed after September.</span></div>
+        <div class="msg c"><b>Claude</b><span class="t">Saved as a rule (owner: you). To check implementation dates I need read-only CRM access. OK?</span></div>
+        <div class="msg sys"><span class="pill good">Rule saved &middot; owner: FP&amp;A lead</span><span class="pill navy">Access asked: CRM, read-only</span><span class="pill acc">Staff time: 5 seconds</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h3 style="margin-bottom:12px">The method, in order</h3>
+    <div class="steps4">
+      <div class="st4"><span class="n">1</span><b>Pick a narrow workflow that wins a 30-minute live demo</b>
+        <div class="tagrow"><span class="tag">provable against their own output</span><span class="tag">repeats monthly</span><span class="tag">a pain they care about</span></div>
+        <p class="trick">The trick: narrow, but impossible to finish without the client&rsquo;s reconciliation logic (so Claude asks) and other systems&rsquo; data (so Claude requests access).</p></div>
+      <div class="st4"><span class="n">2</span><b>Enter through the most motivated team: management accounting</b>
+        <p>They are judged on business insight, not GAAP detail. AI doing the grind faster only makes them look better.</p></div>
+      <div class="st4"><span class="n">3</span><b>Through that one workflow, earn access to the rest</b>
+        <p>To explain any driver, the team grants read-only access to FP&amp;A, accounting and controller data, one request at a time, each with a live reason.</p></div>
+      <div class="st4"><span class="n">4</span><b>Watch, learn and update as the work happens</b>
+        <p>Every yes/no answer becomes a rule with an owner. Every repeated pattern becomes a skill. Past months get replayed before a change goes live.</p></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h3>Built from what Claude already ships</h3><span class="small">No new product needed to start</span></div>
+    <div class="ships">
+      <div class="ship"><b>Claude for Excel</b><span>Where FP&amp;A and accounting already work.</span><em>generally available May 2026</em></div>
+      <div class="ship"><b>Finance plugin</b><span>Reconciliation, variance analysis, month-end close, journal entries, SOX testing.</span><em>Cowork plugins, Jan 2026</em></div>
+      <div class="ship"><b>Connectors</b><span>Read-only access to the ledger, CRM and HR systems, one grant at a time.</span><em>MCP</em></div>
+      <div class="ship"><b>Memory</b><span>Keeps each confirmed rule and its owner between months.</span><em>Team and Enterprise, Sep 2025</em></div>
+      <div class="ship"><b>Agent Skills</b><span>Packages what Claude learned into a skill the next team can reuse.</span><em>Oct 2025</em></div>
+    </div>
+  </div>
+
+  <div>
+    <h3 style="margin-bottom:12px">From one demo to a product with the bank&rsquo;s context built in</h3>
+    <div class="journey"><div class="jstep a">Day 1 &middot; 30-min live demo</div><div class="jstep b">Client starts running it</div><div class="jstep c">3&ndash;6-month pilot</div><div class="jstep d">Second presentation</div></div>
+    <div class="jsub"><p>1&ndash;2 target banks: prove the time saved, win trust.</p><p>The team runs it on its own monthly report.</p><p>It asks for more access; Claude learns the context.</p><p>A product with the bank&rsquo;s context already learned.</p></div>
+  </div>
+
+</section>
+
+<!-- ============ 2 WHO ============ -->
+<section class="view" id="v-who" role="tabpanel" aria-labelledby="tab-who" hidden>
+  <div class="lede">
+    <div class="eyebrow">Who to enter through</div>
+    <h2>Enter through management accounting: they are motivated, and their work needs everyone&rsquo;s data.</h2>
+    <p>Management accounting turns about 80 monthly reports into what the CFO should change. To explain any number, they need accounting&rsquo;s ledger and treasury&rsquo;s cash data. So one team&rsquo;s report becomes the door to the rest.</p>
+  </div>
+  <div class="panel">
+    <div class="panel-h"><h3>What Claude can read, as access is granted</h3>
+      <div class="row"><button class="btn sm pri" id="who-play" type="button">Play 6 months</button><div class="seg" role="group" aria-label="Stage" id="who-seg"><button type="button" data-s="0" aria-pressed="true">Day 1</button><button type="button" data-s="1" aria-pressed="false">Month 3</button><button type="button" data-s="2" aria-pressed="false">Month 6</button></div></div></div>
+    <div class="org">
+      <div class="cfo"><b>CFO</b><span>wants to know what to change in the business</span></div>
+      <div class="up"><i></i>conclusions and operating actions</div>
+      <div class="teams">
+        <div class="team"><span class="lab">Later, through access</span><b>Financial accounting</b><span class="who">Controller &middot; bank back office</span><p>Books, closes and files GAAP, SEC and Fed reports. Judged on accuracy. Staff fear replacement, so a weak way in.</p><span class="feeds">Feeds ledger and close data &rarr;</span><div class="srcs" data-team="fa"></div></div>
+        <div class="arr" aria-hidden="true">&rarr;</div>
+        <div class="team entry"><span class="lab">Entry point</span><b>Management accounting</b><span class="who">FP&amp;A &middot; business finance</span><p>Turns ~80 monthly reports into what to change. Judged on insight, and they sign off. They care what numbers mean, not how they were booked.</p><span class="feeds">Needs both teams&rsquo; data &rarr; requests access</span><div class="srcs" data-team="ma"></div></div>
+        <div class="arr" aria-hidden="true">&larr;</div>
+        <div class="team"><span class="lab">Later, through access</span><b>Treasury</b><span class="who">Treasurer</span><p>Cash in and out, funding and liquidity. Judged on cash and funding cost.</p><span class="feeds">&larr; Feeds cash and funding data</span><div class="srcs" data-team="tr"></div></div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:14px;align-items:baseline"><b class="mono" id="who-n" style="font-size:28px;color:var(--good)">1</b><span id="who-note" class="small" style="flex:1;min-width:220px"></span></div>
+  </div>
+  <div>
+    <h3 style="margin-bottom:12px">Why management accounting is the right way in</h3>
+    <div class="why3">
+      <div class="panel"><h4>1 &middot; Their goal is operational insight</h4><ul><li>Travel +18% on flat headcount &rarr; tighten the travel policy</li><li>Marketing +$5m from 3 events that brought no new leads &rarr; cut them</li><li>Cost per loan +12% in one unit &rarr; reprice or restaff</li></ul></div>
+      <div class="panel"><h4>2 &middot; Natural motivation, no fear</h4><ul><li>They are judged on the conclusions, and they sign off.</li><li>Claude does the 80-report grind; they present sharper insights, faster.</li><li>It makes them look smarter. Accounting staff, by contrast, fear replacement.</li></ul></div>
+      <div class="panel hl"><h4>3 &middot; Their work pulls in everyone&rsquo;s data</h4><ul><li>To explain any driver, Claude needs accounting&rsquo;s ledger, sub-ledgers and close files, and treasury&rsquo;s cash data.</li><li>Example: the travel spike &rarr; read access to the expense sub-ledger &rarr; Claude learns how accounting codes and accrues travel.</li></ul></div>
+    </div>
+  </div>
+  <div class="banner"><b>Result:</b> one team&rsquo;s monthly report becomes the door into accounting and treasury workflows, without anyone writing documentation.</div>
+</section>
+
+<!-- ============ 3 LIVE ============ -->
+<section class="view" id="v-live" role="tabpanel" aria-labelledby="tab-live" hidden>
+  <div class="lede">
+    <div class="eyebrow">Narrow entry workflows</div>
+    <h2>Three narrow workflows: prove it live, then earn the questions and the access.</h2>
+    <p>Each one is small enough to prove in a 30-minute meeting, repeats every month or quarter, and can&rsquo;t be finished without logic and data from outside the file. Click through the steps and watch &ldquo;What Claude has learned&rdquo; fill up. Nobody writes a page.</p>
+  </div>
+  <div class="why-entry"><b>Why these are entry points:</b> narrow enough to prove in one live demo, repeated every month or quarter, and dependent on logic and data outside the file.</div>
+  <div class="cmpbar" role="group" aria-label="Compare the three workflows"><span class="small">Compare across all three:</span><button type="button" data-row="what" aria-pressed="false">What it is</button><button type="button" data-row="demo" aria-pressed="false">In the live demo</button><button type="button" data-row="ask" aria-pressed="false">Claude asks</button><button type="button" data-row="acc" aria-pressed="false">Needs access</button></div>
+  <div class="wfpick" id="wfpick">
+    <article class="wfc" data-w="1">
+      <div class="wfc-h"><span class="k">Workflow 1 &middot; mgmt accounting &middot; monthly</span><span class="pill acc">Start here</span></div>
+      <b class="wfc-t">80 reports &rarr; 3 conclusions</b>
+      <div class="wfc-s" data-row="what"><span class="wfc-l">What it is</span>The head of management accounting turns ~80 monthly reports into what leadership acts on.</div>
+      <div class="wfc-s" data-row="demo"><span class="wfc-l">In the live demo</span><ol><li>Load 2-year-old anonymized reports</li><li>Rank drivers: travel +18% on flat headcount; marketing +$5m, leads flat</li><li>Draft the CFO summary: evidence and 2&ndash;3 actions, e.g. cut 3 low-return events</li></ol></div>
+      <div class="wfc-s ask" data-row="ask"><span class="wfc-l">Claude asks, only here</span>&ldquo;Travel +18% on flat headcount: new client-visit policy, or flag it?&rdquo;</div>
+      <div class="wfc-s acc" data-row="acc"><span class="wfc-l">Needs access &rarr; learns next</span>Ledger detail, cost centers, CRM, HR &rarr; the controller&rsquo;s close and treasury&rsquo;s cash data</div>
+      <div class="wfc-f"><span id="wfs-1" class="small">Not started</span><button type="button" class="btn sm" data-w="1" aria-pressed="true">Run it live &darr;</button></div>
+    </article>
+    <article class="wfc" data-w="2">
+      <div class="wfc-h"><span class="k">Workflow 2 &middot; bank controller &middot; quarterly</span></div>
+      <b class="wfc-t">Balance-sheet substantiation</b>
+      <div class="wfc-s" data-row="what"><span class="wfc-l">What it is</span>Before sign-off, prove every balance-sheet number. The ledger says loans are <b>$10.00bn</b>; the loan system adds up to <b>$9.96bn</b>. Explain the $40m.</div>
+      <div class="wfc-s" data-row="demo"><span class="wfc-l">In the live demo</span><ol><li>Load the Q3 trial balance and loan-system extract</li><li>Explain the $40m: a <b>$25m</b> repayment dated 9/30 with cash on 10/1, and <b>$15m</b> interest still accrued on a loan 90+ days late</li><li>Draft the substantiation memo, every break sourced</li></ol></div>
+      <div class="wfc-s ask" data-row="ask"><span class="wfc-l">Claude asks, only here</span>&ldquo;Repayment dated 9/30, cash on 10/1. Does this desk&rsquo;s cut-off rule put it in Q3 or Q4?&rdquo;</div>
+      <div class="wfc-s acc" data-row="acc"><span class="wfc-l">Needs access &rarr; learns next</span>Ops bookings, loan servicing, reserve model &rarr; reconciliation breaks, accruals, SEC/Fed adjustments</div>
+      <div class="wfc-f"><span id="wfs-2" class="small">Not started</span><button type="button" class="btn sm" data-w="2" aria-pressed="false">Run it live &darr;</button></div>
+    </article>
+    <article class="wfc" data-w="3">
+      <div class="wfc-h"><span class="k">Workflow 3 &middot; FP&amp;A &middot; monthly</span></div>
+      <b class="wfc-t">Actual vs plan: the translator</b>
+      <div class="wfc-s" data-row="what"><span class="wfc-l">What it is</span>Compare actual spend with plan and explain every big gap. The math is easy; chasing Marketing or HR for the reason, then translating it, is the slow part.</div>
+      <div class="wfc-s" data-row="demo"><span class="wfc-l">In the live demo</span><ol><li>Load this month&rsquo;s actuals and the plan</li><li>Flag Marketing <b>$5m over plan</b>; draft a note in Marketing&rsquo;s language</li><li>Marketing replies &ldquo;3 extra ABC events&rdquo;; Claude writes it into the book in accounting terms</li></ol></div>
+      <div class="wfc-s ask" data-row="ask"><span class="wfc-l">Claude asks, only here</span>&ldquo;Marketing is $5m over plan. Send them this note, or is it already explained?&rdquo;</div>
+      <div class="wfc-s acc" data-row="acc"><span class="wfc-l">Needs access &rarr; learns next</span>CRM, HR roster, marketing spend &rarr; revenue forecast, headcount plan, opex</div>
+      <div class="wfc-f"><span id="wfs-3" class="small">Not started</span><button type="button" class="btn sm" data-w="3" aria-pressed="false">Run it live &darr;</button></div>
+    </article>
+  </div>
+  <div class="live">
+    <div class="panel" id="wf-panel">
+      <div class="wfhead"><div style="display:flex;flex-direction:column;gap:6px;min-width:0"><h3 id="wf-title"></h3><p id="wf-what"></p></div><span class="pill mute" id="wf-data">Sample data</span></div>
+      <div class="runlog" id="runlog" style="margin-top:14px"></div>
+    </div>
+    <aside class="side" aria-label="What Claude has learned">
+      <div class="panel">
+        <h3>What Claude has learned</h3>
+        <p class="small" style="margin:2px 0 10px">Earned through the work, not written by staff.</p>
+        <div class="ctr">
+          <div id="c-rules"><b>0</b><span>rules saved, each with an owner</span></div>
+          <div id="c-acc"><b>0</b><span>systems Claude can read</span></div>
+          <div id="c-skills"><b>0</b><span>skills packaged</span></div>
+          <div class="zero"><b>0</b><span>pages written by staff</span></div>
+        </div>
+        <p class="small" id="c-time" style="margin-top:8px">Staff time so far: 0 seconds</p>
+      </div>
+      <div class="panel"><h4>Rules (from yes/no answers)</h4><div class="lst" id="l-rules"><p class="empty">None yet. Claude asks only when the work needs it.</p></div></div>
+      <div class="panel"><h4>Access (read-only)</h4><div class="lst" id="l-acc"><div class="li">Monthly management reports<small>Day 1 &middot; given for the demo</small></div></div></div>
+      <div class="panel"><h4>Skills</h4><div class="lst" id="l-skills"><p class="empty">Packaged when a workflow finishes. Click one to read it.</p></div>
+        <button class="btn sm" id="replay" type="button" style="margin-top:10px" disabled>Replay the rules on last quarter</button>
+        <p class="note" id="replay-out" style="margin-top:6px"></p></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ 4 WHERE ============ -->
+<section class="view" id="v-where" role="tabpanel" aria-labelledby="tab-where" hidden>
+  <div class="lede">
+    <div class="eyebrow">Where to start</div>
+    <h2>Start where the gap is biggest and where a way in already exists.</h2>
+    <p>Second-tier banks hire Goldman-trained people and want Goldman-grade control, but they can&rsquo;t build Goldman&rsquo;s systems. So the work is still manual, and that is the gap.</p>
+  </div>
+  <div class="focusbox">
+    <span class="lab">Main focus</span>
+    <h3>Cluster 1 &middot; second-tier banks catching up to Goldman &middot; workflows 1, 2 and 3</h3>
+    <div class="tw"><table class="t" style="min-width:760px">
+      <tr><th>Bank</th><th></th><th>Why</th><th>Who: CFO sponsor &rarr; entry team</th></tr>
+      <tr><td><b>SMBC Americas</b></td><td><span class="prio first">Start first</span></td><td>Has hired many ex-Goldman people used to Goldman-grade systems. Wants AI transformation and has the need, but doesn&rsquo;t know what to build. A good way in.</td><td>Rick Davison, CFO &rarr; Head of FP&amp;A</td></tr>
+      <tr><td><b>Mizuho Americas</b></td><td><span class="prio first">Start first</span></td><td>Bought Greenhill (closed Dec 2023). The group&rsquo;s Chief AI Officer presented at Anthropic&rsquo;s Code with Claude in Tokyo (June 2026).</td><td>G.A. Pavlick, CFO (to confirm) &rarr; Head of FP&amp;A</td></tr>
+      <tr><td><b>MUFG Americas</b></td><td><span class="prio next">Next</span></td><td>Growing capital markets without bulge-bracket systems.</td><td>Mark Thumser, Chief Financial &amp; Strategy Officer &rarr; Head of FP&amp;A</td></tr>
+      <tr><td><b>Jefferies</b></td><td><span class="prio next">Next</span></td><td>SMBC owns about 15% and is cleared to go to 20%. Building out.</td><td>Matt Larson, CFO &rarr; Head of FP&amp;A</td></tr>
+      <tr><td><b>Citizens</b></td><td><span class="prio next">Next</span></td><td>Regional bank with a capital-markets arm. KeyCorp and Truist look similar.</td><td>Aunoy Banerjee, CFO &rarr; Chris Emerson, Head of Corporate Planning</td></tr>
+      <tr><td><b>GS &middot; MS &middot; JPM</b></td><td><span class="prio skip">Skip</span></td><td>Build much of this in-house. Anthropic engineers are already embedded at Goldman building accounting and onboarding agents (Feb 2026).</td><td>&mdash;</td></tr>
+    </table></div>
+    <p style="font-size:14.5px"><b>How in:</b> the CFO sponsors; we enter through the head of management accounting with workflow 1 (titles: Head of FP&amp;A, Management Reporting, Corporate Planning).</p>
+  </div>
+  <div class="grid2">
+    <div class="panel" style="display:flex;flex-direction:column;gap:8px">
+      <h4 style="color:var(--accent)">Cluster 2 &middot; a separate motion</h4>
+      <h3>Big 4 quality of earnings, PwC first</h3>
+      <p style="font-size:14.5px"><b>Why:</b> a quality-of-earnings review comes with every deal and mirrors bank work. It&rsquo;s a fixed fee (about $150K&ndash;$500K, up to ~$1M on complex deals), so every hour saved is margin.</p>
+      <p style="font-size:14.5px"><b>Way in:</b> PwC launched an Office of the CFO practice built on Claude (May 2026). KPMG (May 2026) and Deloitte (Oct 2025) also have Anthropic alliances.</p>
+      <div class="askbox" style="padding:10px 12px"><span class="lb">Claude asks</span><span style="font-size:14.5px">&ldquo;You added back $2m of &lsquo;one-time&rsquo; consulting three years running. Still one-time?&rdquo;</span></div>
+      <p style="font-size:14.5px"><b>Compounds:</b> each deal sharpens the firm&rsquo;s own review playbook.</p>
+    </div>
+    <div class="panel">
+      <h4 style="margin-bottom:8px">Cluster 3 &middot; channels, checked</h4>
+      <div class="tw"><table class="t">
+        <tr><td><b>Accenture, Cognizant, Infosys</b></td><td><span class="prio first">Use</span></td><td>Claude partners already inside banks&rsquo; back offices.</td></tr>
+        <tr><td><b>Genpact</b></td><td><span class="prio harder">Harder</span></td><td>Its finance agents are built with Google Cloud (May 2026).</td></tr>
+        <tr><td><b>Pilot</b></td><td><span class="prio skip">Later</span></td><td>Small-business books, not banks.</td></tr>
+        <tr><td><b>Basis</b></td><td><span class="prio rival">Rival</span></td><td>Built on OpenAI models. Works with ~30% of the top 25 accounting firms; valued at $1.15B (Feb 2026).</td></tr>
+        <tr><td><b>Fragment</b></td><td><span class="prio skip">Skip</span></td><td>Acquired by Sierra (Apr 2026).</td></tr>
+      </table></div>
+    </div>
+  </div>
+  <div>
+    <h3 style="margin-bottom:12px">The first 12 months</h3>
+    <div class="time3">
+      <div class="panel now"><b>Months 0&ndash;3</b><span>Demos of workflows 1&ndash;3 &rarr; SMBC and Mizuho pilots, plus PwC quality of earnings and one outsourcer.</span></div>
+      <div class="panel"><b>Months 3&ndash;6</b><span>Earn access to more workflows in each pilot. Package the skills owners have confirmed.</span></div>
+      <div class="panel"><b>Months 6&ndash;12</b><span>Roll the packaged workflows out to more Cluster 1 banks, then through outsourcers and the Big 4.</span></div>
+    </div>
+  </div>
+  <div>
+    <h3 style="margin-bottom:4px">How we know a pilot works</h3>
+    <p class="small" style="margin-bottom:12px">Targets to agree with the CFO sponsor in week 1, measured against the team&rsquo;s own last cycle.</p>
+    <div class="meas">
+      <div class="panel"><h4>Report to conclusions</h4><b class="big">days &rarr; hours</b><span class="small">From the 80 reports to a CFO-ready summary, same sign-off.</span></div>
+      <div class="panel"><h4>Breaks explained</h4><b class="big">100% sourced</b><span class="small">Every balance-sheet break tied to a document before sign-off.</span></div>
+      <div class="panel"><h4>Questions per cycle</h4><b class="big">falling</b><span class="small">Proof Claude is learning: fewer questions each month.</span></div>
+      <div class="panel"><h4>Skills confirmed</h4><b class="big">owner-signed</b><span class="small">Each rule has a named owner who said yes.</span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h4 style="margin-bottom:8px">Sources</h4>
+    <ul class="srclist">
+      <li><a href="https://www.cnbc.com/2026/02/06/anthropic-goldman-sachs-ai-model-accounting.html" target="_blank" rel="noopener">CNBC: Anthropic engineers embedded at Goldman (Feb 2026)</a></li>
+      <li><a href="https://www.anthropic.com/news/pwc-expanded-partnership" target="_blank" rel="noopener">Anthropic and PwC: Office of the CFO practice (May 2026)</a></li>
+      <li><a href="https://anthropic.com/news/anthropic-kpmg" target="_blank" rel="noopener">Anthropic and KPMG (May 2026)</a></li>
+      <li><a href="https://www.anthropic.com/news/deloitte-anthropic-partnership" target="_blank" rel="noopener">Anthropic and Deloitte (Oct 2025)</a></li>
+      <li><a href="https://claude.com/code-with-claude/session/tyo-mizuho-ai-native-engineering" target="_blank" rel="noopener">Mizuho at Code with Claude Tokyo (Jun 2026)</a></li>
+      <li><a href="https://www.mizuhogroup.com/americas-news/2023-12-mizuho-closes-acquisition-of-ma-and-restructuring-advisory-firm-greenhill" target="_blank" rel="noopener">Mizuho closes Greenhill (Dec 2023)</a></li>
+      <li><a href="https://www.businesswire.com/news/home/20221004005517/en" target="_blank" rel="noopener">SMBC Americas names Rick Davison CFO</a></li>
+      <li><a href="https://www.mufgamericas.com/who-we-are/our-leadership-team/mark-thumser" target="_blank" rel="noopener">MUFG Americas: Mark Thumser</a></li>
+      <li><a href="https://investor.citizensbank.com/about-us/newsroom/latest-news/2026/2026-06-15-210525677.aspx" target="_blank" rel="noopener">Citizens: Chris Emerson&rsquo;s role (Jun 2026)</a></li>
+      <li><a href="https://www.sec.gov/Archives/edgar/data/0000096223/000009622326000009/jef-20251130.htm" target="_blank" rel="noopener">Jefferies 10-K: SMBC stake</a></li>
+      <li><a href="https://media.genpact.com/2026-05-07-Genpact-and-Google-Cloud-Expand-Alliance-to-Bring-Agentic-Solutions-to-the-Office-of-the-CFO" target="_blank" rel="noopener">Genpact and Google Cloud (May 2026)</a></li>
+      <li><a href="https://www.businesswire.com/news/home/20260224020999/en/Basis-Raises-$100M-at-a-$1.15B-Valuation-as-Accounting-Firms-Adopt-End-to-End-Agents-Across-Accounting-Tax-and-Audit" target="_blank" rel="noopener">Basis raises $100M (Feb 2026)</a></li>
+      <li><a href="https://sierra.ai/blog/sierra-acquires-fragment-in-france" target="_blank" rel="noopener">Sierra acquires Fragment (Apr 2026)</a></li>
+      <li><a href="https://claude.com/plugins/finance" target="_blank" rel="noopener">Claude finance plugin</a></li>
+      <li><a href="https://claude.com/blog/collaborate-with-claude-across-excel-powerpoint-word-and-outlook" target="_blank" rel="noopener">Claude for Excel, generally available (May 2026)</a></li>
+    </ul>
+    <p class="note" style="margin-top:8px">Workflow numbers on the Narrow entry workflows tab are sample data. Bank context comes from expert calls.</p>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast" hidden></div>
+<div class="drawer" id="drawer" hidden><div class="drawer-in" role="dialog" aria-modal="true" aria-labelledby="dr-title"><div class="row" style="justify-content:space-between"><h3 id="dr-title">Skill</h3><button class="btn sm" id="dr-close" type="button">Close</button></div><p class="small" id="dr-sub"></p><pre class="skill" id="dr-body"></pre></div></div>
+<script>
+(function () {
+'use strict';
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function wait(ms) { return new Promise(function (r) { setTimeout(r, REDUCED ? 0 : ms); }); }
+var toastT = null;
+function toast(t) { var el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { el.hidden = true; }, 2600); }
+function fmt1(x) { return x.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+
+/* ---------------- tabs ---------------- */
+var VIEWS = ['method', 'who', 'live', 'where'];
+function show(v, fromHash) {
+  if (VIEWS.indexOf(v) < 0) v = 'method';
+  VIEWS.forEach(function (k) {
+    var on = k === v, sec = $('#v-' + k);
+    $('#tab-' + k).setAttribute('aria-selected', on ? 'true' : 'false');
+    sec.hidden = !on;
+    if (on) { sec.classList.remove('enter'); void sec.offsetWidth; sec.classList.add('enter'); }
+  });
+  if (!fromHash) { try { history.replaceState(null, '', '#' + v); } catch (e) {} window.scrollTo(0, 0); }
+  if (v === 'method' && !chatPlayed) playChat();
+  if (v === 'who' && !whoPlayed) setTimeout(whoPlay, 400);
+}
+$$('nav.tabs button').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.v); }); });
+
+/* ---------------- tab 1 ---------------- */
+/* the new-way chat plays like a live conversation: typing, then the message */
+var chatTok = 0, chatPlayed = false;
+async function playChat() {
+  var tok = ++chatTok, chat = $('#chat1'), items = $$('.msg', chat);
+  chatPlayed = true;
+  $$('.typing-b', chat).forEach(function (x) { x.remove(); });
+  if (REDUCED) { items.forEach(function (m) { m.hidden = false; }); return; }
+  chat.style.minHeight = ''; chat.style.minHeight = chat.offsetHeight + 'px';
+  items.forEach(function (m) { m.hidden = true; m.classList.remove('popin'); });
+  function alive() { return tok === chatTok; }
+  await wait(450);
+  for (var i = 0; i < items.length; i++) {
+    if (!alive()) return;
+    var m = items[i];
+    if (m.classList.contains('sys')) {
+      var pills = $$('.pill', m);
+      pills.forEach(function (p, k) { p.classList.remove('pillpop'); void p.offsetWidth; p.style.animationDelay = (k * 0.22) + 's'; p.classList.add('pillpop'); });
+      m.hidden = false; continue;
+    }
+    var who = m.classList.contains('u') ? 'u' : 'c';
+    var dots = document.createElement('div'); dots.className = 'msg ' + who + ' typing-b popin';
+    dots.innerHTML = '<span class="typing" aria-hidden="true"><i></i><i></i><i></i></span>';
+    chat.insertBefore(dots, m);
+    await wait(who === 'c' ? 900 : 700);
+    dots.remove();
+    if (!alive()) return;
+    var t = $('.t', m), full = t.dataset.full || (t.dataset.full = t.textContent);
+    if (who === 'c') {
+      t.textContent = ''; t.classList.add('streaming'); m.hidden = false; m.classList.add('popin');
+      var words = full.split(' ');
+      for (var w = 1; w <= words.length; w++) { if (!alive()) { t.textContent = full; t.classList.remove('streaming'); return; } t.textContent = words.slice(0, w).join(' '); await wait(42); }
+      t.classList.remove('streaming');
+    } else { t.textContent = full; m.hidden = false; m.classList.add('popin'); }
+    await wait(600);
+  }
+}
+$('#chat-play').addEventListener('click', playChat);
+function pulse(el) { if (!el) return; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+function countTo(el, to, ms, f) {
+  f = f || function (x) { return String(Math.round(x)); };
+  var from = parseFloat(String(el.textContent).replace(/,/g, '')) || 0;
+  if (REDUCED || from === to) { el.textContent = f(to); return; }
+  var t0 = performance.now();
+  (function step(now) { var k = Math.min(1, (now - t0) / ms); el.textContent = f(from + (to - from) * k); if (k < 1) requestAnimationFrame(step); })(t0);
+}
+
+
+/* ---------------- tab 2 ---------------- */
+var SRC = { ma: [['Monthly reports', 0], ['CRM', 1], ['HR roster', 1], ['Marketing spend', 1]], fa: [['GL detail', 1], ['Expense sub-ledger', 1], ['Close files', 2], ['Loan servicing', 2], ['Reserve model', 2]], tr: [['Cash positions', 2], ['Funding costs', 2]] };
+var WHO_NOTE = [
+  'systems Claude can read on day 1: only what management accounting shares for the demo.',
+  'systems by month 3: explaining drivers pulled in the ledger, the expense sub-ledger, CRM and HR.',
+  'systems by month 6: the controller’s close and loan data, and treasury’s cash data.'
+];
+var whoStage = 0, whoTok = 0, whoPlayed = false;
+function renderWho(stage, anim) {
+  var prev = whoStage, n = 0, k = 0; whoStage = stage;
+  Object.keys(SRC).forEach(function (t) {
+    $('.srcs[data-team="' + t + '"]').innerHTML = SRC[t].map(function (sr) {
+      var on = sr[1] <= stage, fresh = anim && on && sr[1] > prev; if (on) n++;
+      return '<span class="src' + (on ? ' on' : '') + (fresh ? ' pop' : '') + '"' + (fresh ? ' style="animation-delay:' + (0.2 * k++).toFixed(2) + 's"' : '') + '>' + esc(sr[0]) + '</span>';
+    }).join('');
+  });
+  if (anim) countTo($('#who-n'), n, 900); else $('#who-n').textContent = n;
+  $('#who-note').textContent = WHO_NOTE[stage] + ' All read-only, each granted for a reason. Pages of documentation written: 0.';
+  $$('#who-seg button').forEach(function (b) { b.setAttribute('aria-pressed', +b.dataset.s === stage ? 'true' : 'false'); });
+  var arrs = $$('.teams .arr');
+  if (anim && stage > prev && !REDUCED) {
+    arrs[0].classList.add('flow'); if (stage >= 2) arrs[1].classList.add('flow', 'l');
+    setTimeout(function () { arrs.forEach(function (x) { x.classList.remove('flow', 'l'); }); }, 3600);
+  }
+}
+async function whoPlay() {
+  var tok = ++whoTok; whoPlayed = true;
+  renderWho(0, false); await wait(700);
+  for (var st = 1; st <= 2; st++) { if (tok !== whoTok) return; renderWho(st, true); await wait(2800); }
+}
+$$('#who-seg button').forEach(function (b) { b.addEventListener('click', function () { whoTok++; whoPlayed = true; renderWho(+b.dataset.s, true); }); });
+$('#who-play').addEventListener('click', whoPlay);
+renderWho(0, false);
+
+/* ---------------- tab 3: state ---------------- */
+var ST;
+function fresh() { return { rules: [], acc: [], skills: [], secs: 0, cur: 1, wf: { 1: { i: 0, a: {}, html: [] }, 2: { i: 0, a: {}, html: [] }, 3: { i: 0, a: {}, html: [] } } }; }
+ST = fresh();
+
+var flyQ = [], lastRect = null;
+function addRule(t, owner, from) { ST.rules.push({ t: t, o: owner, f: from }); flyQ.push({ k: 'rule', t: 'Rule saved · ' + owner, list: '#l-rules', ctr: '#c-rules' }); }
+function addAcc(n, why, learned) { ST.acc.push({ n: n, why: why, l: learned }); flyQ.push({ k: 'acc', t: 'Read access · ' + n, list: '#l-acc', ctr: '#c-acc' }); }
+function addSkill(id, title) { if (ST.skills.some(function (s) { return s.id === id; })) return; ST.skills.push({ id: id, t: title }); flyQ.push({ k: 'sk', t: 'Skill · ' + id, list: '#l-skills', ctr: '#c-skills' }); }
+function runFlights() {
+  var q = flyQ; flyQ = [];
+  q.forEach(function (f, idx) {
+    var items = $$(f.list + ' .li'), target = items[items.length - 1]; if (!target) return;
+    var r = target.getBoundingClientRect(), vis = r.width > 0 && r.top > 0 && r.bottom < window.innerHeight;
+    if (REDUCED || !lastRect || !vis) { target.classList.add('landed'); pulse($(f.ctr)); return; }
+    target.classList.add('landing');
+    var chip = document.createElement('div'); chip.className = 'fly ' + f.k; chip.textContent = f.t;
+    chip.style.transition = 'none'; chip.style.opacity = '0'; document.body.appendChild(chip);
+    var cw = chip.offsetWidth, chh = chip.offsetHeight;
+    var sx = lastRect.left + lastRect.width / 2 - cw / 2, sy = lastRect.top + lastRect.height / 2 - chh / 2;
+    var tx = Math.min(r.left + 8, window.innerWidth - cw - 8), ty = r.top + r.height / 2 - chh / 2;
+    chip.style.transform = 'translate(' + sx + 'px,' + sy + 'px)';
+    setTimeout(function () {
+      chip.style.transition = ''; chip.style.opacity = '1'; void chip.offsetWidth;
+      chip.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(.94)';
+      setTimeout(function () { chip.remove(); target.classList.remove('landing'); target.classList.add('landed'); pulse($(f.ctr)); }, 840);
+    }, 80 + idx * 420);
+  });
+}
+
+function askBox(q, opts) {
+  return '<div class="askbox"><span class="lb">Claude asks, only here</span><span class="q">' + esc(q) + '</span><div class="next-row">' +
+    opts.map(function (o, i) { return '<button class="btn' + (i === 0 ? ' pri' : '') + '" type="button" data-o="' + o[0] + '">' + esc(o[1]) + '</button>'; }).join('') + '</div></div>';
+}
+function askDone(q, ans, ruleText, owner) {
+  return '<div class="askbox"><span class="lb">Claude asked</span><span class="q">' + esc(q) + '</span><span><span class="pill mute">Answer: ' + esc(ans) + '</span></span></div>' +
+    '<div class="learned"><b>Saved as a rule</b> (owner: ' + esc(owner) + '): ' + esc(ruleText) + '</div>';
+}
+function accBox(sys, why) {
+  return '<div class="accbox"><span class="lb">Claude requests access</span><dl><dt>System</dt><dd><b>' + esc(sys) + '</b></dd><dt>Access</dt><dd>Read-only</dd><dt>Why now</dt><dd>' + esc(why) + '</dd></dl>' +
+    '<div class="next-row"><button class="btn navy" type="button" data-o="yes">Grant read-only</button><button class="btn" type="button" data-o="no">Not now</button></div></div>';
+}
+function accDone(sys, why, yes, learned, fallback) {
+  return '<div class="accbox"><span class="lb">' + (yes ? 'Access granted' : 'Access declined for now') + '</span><dl><dt>System</dt><dd><b>' + esc(sys) + '</b></dd><dt>Access</dt><dd>Read-only</dd><dt>Why now</dt><dd>' + esc(why) + '</dd></dl></div>' +
+    (yes ? '<div class="learned"><b>Learned:</b> ' + learned + '</div>' : '<p class="small">' + esc(fallback) + '</p>');
+}
+function bindOpts(body, fn) { $$('button[data-o]', body).forEach(function (b) { b.addEventListener('click', function () { lastRect = b.getBoundingClientRect(); $$('button', body).forEach(function (x) { x.disabled = true; }); fn(b.dataset.o); }); }); }
+
+/* ---------------- workflow 1 ---------------- */
+var CITES = { 2: 'R-03 headcount', 11: 'R-12 travel & expense', 40: 'R-41 marketing ROI', 43: 'R-44 campaign list', 56: 'R-57 lending unit economics' };
+function rgrid(state) {
+  var h = '<div class="rgrid" role="img" aria-label="80 monthly reports">';
+  for (var i = 0; i < 80; i++) { var c = state === 'cited' ? (CITES[i] ? ' read cite' : ' read dim') : state === 'read' ? ' read' : ''; h += '<span class="rg' + c + '" title="R-' + String(i + 1).padStart(2, '0') + '"></span>'; }
+  return h + '</div>';
+}
+function citeList() { return '<div class="citelist">' + Object.keys(CITES).map(function (k) { return '<span>' + esc(CITES[k]) + '</span>'; }).join('') + '</div>'; }
+var CATS = [['Cost-center P&Ls', 34], ['Opex by category', 14], ['Lending unit economics', 9], ['Revenue by product', 8], ['Headcount', 6], ['Marketing ROI', 5], ['Travel & expense', 4]];
+var DRV = [
+  ['Marketing events', '+$5.0m', 5.0, 'New leads flat (+1%)', ['bad', 'No return']],
+  ['Travel & entertainment', '+18% · +$2.4m', 2.4, 'Headcount flat (0%)', ['ask', 'Unexplained']],
+  ['Cost per loan, mid-market lending', '+12% · +$1.8m', 1.8, 'Loan volume −6%, staff +4%', ['bad', 'Cost up, volume down']],
+  ['Software licences', '+6% · +$0.9m', 0.9, 'Contracted price step-up', ['good', 'Explained']],
+  ['Occupancy', '−3% · −$0.4m', -0.4, 'New sublease income', ['good', 'Explained']]
+];
+function drvTable(rows) {
+  return '<div class="tw"><table class="t" style="min-width:620px"><tr><th>Driver</th><th class="r">Change</th><th style="width:22%">$ impact</th><th>Checked against</th><th>Read</th></tr>' +
+    rows.map(function (d) { var w = Math.abs(d[2]) / 5 * 100; return '<tr><td><b>' + esc(d[0]) + '</b></td><td class="r">' + esc(d[1]) + '</td><td><div class="bar"><i class="' + (d[2] < 0 ? 'neg' : d[4][0] === 'good' ? '' : 'hot') + '" style="width:' + w.toFixed(0) + '%"></i></div></td><td>' + esc(d[3]) + '</td><td><span class="pill ' + d[4][0] + '">' + esc(d[4][1]) + '</span></td></tr>'; }).join('') +
+    '</table></div>';
+}
+function wf1Summary(a) {
+  var travel = a.travel === 'policy'
+    ? ['Track travel against client revenue.', '+18% ($2.4m) on flat headcount is the new client-visit policy, as planned.' + (a.acc ? ' 61% of the increase is client visits by two coverage teams.' : '') + ' Action: report revenue from visited clients next quarter, so the policy proves its worth.']
+    : ['Tighten the travel policy.', '+18% ($2.4m) on flat headcount.' + (a.acc ? ' 61% of the increase is client visits by two coverage teams.' : '') + ' Action: pre-approval for client visits above budget.'];
+  var ev2 = 'Evidence: R-12 travel & expense · R-03 headcount' + (a.acc ? ' · expense sub-ledger, account 6420' : ' · partial: no sub-ledger access yet');
+  return '<div class="memo"><div class="mh"><b>September management pack: draft for the CFO office</b><span class="small">Prepared by Claude · for review by the Head of Management Accounting</span></div>' +
+    '<div class="concl"><span class="cn">1</span><div><b>Cut the 3 low-return marketing events.</b><p>+$5.0m on last year with new leads flat. Action: drop or re-scope them at the next budget review, worth up to $5m a year.</p><span class="ev">Evidence: R-41 marketing ROI · R-44 campaign list</span></div></div>' +
+    '<div class="concl"><span class="cn">2</span><div><b>' + esc(travel[0]) + '</b><p>' + esc(travel[1]) + '</p><span class="ev">' + esc(ev2) + '</span></div></div>' +
+    '<div class="concl"><span class="cn">3</span><div><b>Reprice or restaff mid-market lending.</b><p>Cost per loan +12% while volume fell 6% and staff grew 4%. Action: review pricing on new loans, or move 4 people to growing units.</p><span class="ev">Evidence: R-57 lending unit economics</span></div></div></div>';
+}
+
+/* ---------------- workflow 2 ---------------- */
+function tieTable(a, b) {
+  return '<div class="tw"><table class="t" style="min-width:520px"><tr><th>Source, as of 9/30/2026</th><th class="r">$m</th></tr>' +
+    '<tr><td>General ledger 1400 &middot; Loans held for investment (trial balance)</td><td class="r"><span data-ct="10000">' + a + '</span><span class="tick">TB</span></td></tr>' +
+    '<tr><td>Loan servicing system &middot; 41,206 loans</td><td class="r"><span data-ct="9960">' + b + '</span><span class="tick">&Sigma;</span></td></tr>' +
+    '<tr class="hot"><td><b>Break to explain</b></td><td class="r"><b>40.0</b></td></tr></table></div>' +
+    '<div class="ticklegend"><span><b class="tick" style="margin:0">TB</b> tied to trial balance</span><span><b class="tick" style="margin:0">&Sigma;</b> footed</span><span><b class="tick" style="margin:0">&#10003;</b> agreed to source document</span></div>';
+}
+var M2C = ['<div class="m2chip"><b>&minus;25.0</b><span>Repayment on LN-88231 dated 9/30; cash arrived 10/1, so the ledger booked it in Q4</span></div>', '<div class="m2chip"><b>&minus;15.0</b><span>Interest still accrued on LN-40517, 97 days late</span></div>'];
+function m2html(v, zero, chips) {
+  return '<div class="m2"><div class="m2top"><span class="small">Break left to explain, $m</span><b class="m2v' + (zero ? ' zero' : '') + '">' + (zero ? '0.0 &#10003;' : fmt1(v)) + '</b></div><div class="m2track"><div class="m2fill' + (zero ? ' zero' : '') + '" style="width:' + (zero ? 100 : v / 40 * 100) + '%"></div></div><div class="m2chips">' + chips.join('') + '</div></div>';
+}
+var RECON = '<div class="tw"><table class="t" style="min-width:620px"><tr><th>#</th><th>Reconciling item</th><th class="r">$m</th><th>Evidence</th></tr>' +
+  '<tr><td>1</td><td>Repayment on loan LN-88231 dated 9/30. Cash arrived 10/1, so the ledger booked it in Q4.</td><td class="r">25.0</td><td>Servicing payment log; bank statement 10/1<span class="tick">&#10003;</span></td></tr>' +
+  '<tr><td>2</td><td>Interest still accrued on loan LN-40517, 97 days late. Loans 90+ days late should stop accruing.</td><td class="r">15.0</td><td>Delinquency report; accrual schedule<span class="tick">&#10003;</span></td></tr>' +
+  '<tr class="tot"><td></td><td>Explained</td><td class="r">40.0</td><td></td></tr>' +
+  '<tr class="okrow"><td></td><td><b>Left unexplained</b></td><td class="r"><b>0.0</b></td><td>Every break has a source</td></tr></table></div>';
+function je(lines) {
+  return '<div class="je"><div class="h"><span>Dr/Cr</span><span>Account</span><span style="text-align:right">$m</span></div>' +
+    lines.map(function (l) { return '<div><span>' + l[0] + '</span><span' + (l[0] === 'Cr' ? ' class="cr"' : '') + '>' + esc(l[1]) + '</span><span style="text-align:right">' + l[2] + '</span></div>'; }).join('') + '</div>';
+}
+function wf2Memo(a) {
+  var item1 = a.cut === 'q3'
+    ? '<p><b>Item 1 &middot; repayment, $25.0m.</b> Book in Q3: this desk counts the value date.</p>' + je([['Dr', '1150 Cash in transit', '25.0'], ['Cr', '1400 Loans held for investment', '25.0']])
+    : '<p><b>Item 1 &middot; repayment, $25.0m.</b> Stays in Q4: this desk counts the cash date. Listed as a timing item, no entry.</p>';
+  var item2 = '<p><b>Item 2 &middot; interest on a non-accrual loan, $15.0m.</b> Reverse it' + (a.acc ? ', confirmed in the reserve model.' : '; the controller to confirm the loan is on non-accrual.') + '</p>' + je([['Dr', '4100 Interest income on loans', '15.0'], ['Cr', '1400 Loans (accrued interest)', '15.0']]);
+  var after = a.cut === 'q3' ? 'Adjusted ledger: 9,960.0 = loan system <span class="tick">&#10003;</span>' : 'Adjusted ledger: 9,985.0. The 25.0 left is the documented timing item <span class="tick">&#10003;</span>';
+  return '<div class="memo"><div class="mh"><b>Q3 2026 &middot; Account 1400 Loans held for investment &middot; substantiation</b><span class="small">Prepared by Claude</span></div>' +
+    '<p class="mono" style="font-size:13px">Ledger 10,000.0 &middot; Loan system 9,960.0 &middot; Difference 40.0</p>' + item1 + item2 +
+    '<p class="mono" style="font-size:13px">' + after + '</p>' +
+    '<p class="small">Reviewed by: ______________ (Controller) &middot; every number above links to its source document</p></div>';
+}
+
+/* ---------------- workflow 3 ---------------- */
+var AVP = [['Marketing', 23.8, 28.8], ['Technology', 31.2, 30.4], ['HR', 6.1, 6.5], ['Operations', 18.9, 19.1]];
+function avpTable() {
+  var tp = 0, ta = 0;
+  var rows = AVP.map(function (r) { var g = r[2] - r[1]; tp += r[1]; ta += r[2]; var big = Math.abs(g) > 1;
+    return '<tr' + (big ? ' class="hot"' : '') + '><td><b>' + r[0] + '</b></td><td class="r">' + fmt1(r[1]) + '</td><td class="r">' + fmt1(r[2]) + '</td><td class="r">' + (g > 0 ? '+' : '−') + fmt1(Math.abs(g)) + '</td><td>' + (big ? '<span class="pill bad">Over $1m: explain</span>' : '<span class="pill mute">Under threshold</span>') + '</td></tr>'; }).join('');
+  return '<div class="tw"><table class="t" style="min-width:560px"><tr><th>Department, $m</th><th class="r">Plan</th><th class="r">Actual</th><th class="r">Gap</th><th>Rule</th></tr>' + rows +
+    '<tr class="tot"><td>Total</td><td class="r">' + fmt1(tp) + '</td><td class="r">' + fmt1(ta) + '</td><td class="r">+' + fmt1(ta - tp) + '</td><td></td></tr></table></div>';
+}
+var MAIL = '<div class="mail"><div class="mh2">To: Marketing finance partner &middot; Subject: September events spend</div><div class="mb"><p>Hi, September marketing came in <b>$5.0m over plan</b>, almost all in events. Were these new events, or Q4 events moved earlier? One line is enough.</p><p>Thanks</p></div></div>' +
+  '<p class="small">Written the way Marketing talks: events and campaigns, not GL accounts.</p>';
+var XL_LINES = [['Marketing opex:', '$5.0m unfavorable to plan (+21%).'], ['Driver:', 'three unbudgeted ABC industry events, approved in August for the Q4 pipeline push.'], ['Nature:', 'one-time. Q4 forecast unchanged; full-year opex now $5.0m over plan.'], ['Booking:', 'account 6610 Events, expensed as incurred. No prepaid or accrual needed.']];
+function xlateHtml(full) {
+  var said = ST.wf[3].a.ask === 'known' ? 'From Marketing’s monthly pack' : 'Marketing replied';
+  return '<div class="memo"><div class="mh"><b>Variance commentary &middot; September &middot; Marketing</b><span class="small">Marketing&rsquo;s words &rarr; accounting terms</span></div><div class="xlate"><div class="said"><small>' + esc(said) + '</small>&ldquo;3 extra ABC events in August, approved for the Q4 pipeline push.&rdquo;</div><div class="xarr" aria-hidden="true">&rarr;</div><div class="book">' +
+    XL_LINES.map(function (l) { return '<p>' + (full ? '<b>' + esc(l[0]) + '</b> ' + esc(l[1]) : '') + '</p>'; }).join('') + '</div></div></div>';
+}
+var BOOK = '<div class="memo"><div class="mh"><b>Variance commentary &middot; September &middot; Marketing</b><span class="small">Marketing&rsquo;s words &rarr; accounting terms</span></div>' +
+  '<p><span class="pill mute">Marketing said</span> &ldquo;3 extra ABC events.&rdquo;</p>' +
+  '<p><b>Marketing opex:</b> $5.0m unfavorable to plan (+21%).</p>' +
+  '<p><b>Driver:</b> three unbudgeted ABC industry events, approved in August for the Q4 pipeline push.</p>' +
+  '<p><b>Nature:</b> one-time. Q4 forecast unchanged; full-year opex now $5.0m over plan.</p>' +
+  '<p><b>Booking:</b> account 6610 Events, expensed as incurred. No prepaid or accrual needed.</p></div>';
+
+/* ---------------- workflow definitions ---------------- */
+var WF = {
+  1: { title: '80 reports → 3 conclusions', what: 'The head of management accounting turns about 80 monthly reports into what leadership acts on. Claude reads them all, ranks the drivers and drafts the CFO summary with evidence.', skill: ['monthly-driver-ranking', 'Monthly driver ranking'], nextHint: 'This workflow now needs ledger detail, cost centers, CRM and HR. The controller’s close and treasury’s cash data come next.',
+    steps: [
+      { kind: 'auto', t: 'Load 80 monthly reports', s: 'Two years old and anonymized, as a bank would share for a first meeting', btn: 'Load the reports', run: async function (body) {
+        body.innerHTML = '<div class="row" style="justify-content:space-between"><span class="small">Reading reports</span><span class="mono w1c">0 / 80</span></div>' + rgrid('empty') + '<div class="cats">' + CATS.map(function (c) { return '<span class="cat">' + esc(c[0]) + ' &middot; ' + c[1] + '</span>'; }).join('') + '</div>';
+        var tiles = $$('.rg', body), cats = $$('.cat', body), ctr = $('.w1c', body), edge = 0, ci = 0;
+        for (var i = 0; i < 80; i++) {
+          if (i >= edge && ci < CATS.length) { cats[ci].classList.add('on'); edge += CATS[ci][1]; ci++; }
+          tiles[i].classList.add('read');
+          if (i % 2 === 1) { ctr.textContent = (i + 1) + ' / 80'; await wait(34); }
+        }
+        await wait(250);
+        return rgrid('read') + '<div class="cats">' + CATS.map(function (c) { return '<span class="cat on">' + esc(c[0]) + ' &middot; ' + c[1] + '</span>'; }).join('') + '</div><p><b>80 reports read</b> &middot; 1,912 line items &middot; totals tied to the general ledger <span class="tick">&#10003;</span></p>';
+      } },
+      { kind: 'auto', t: 'Rank the drivers', s: 'By dollar impact, each checked against what should drive it', btn: 'Rank the drivers', run: async function (body) {
+        for (var i = 1; i <= DRV.length; i++) { body.innerHTML = drvTable(DRV.slice(0, i)); await wait(260); }
+        return drvTable(DRV) + '<p class="small">Two lines need a person. Marketing&rsquo;s numbers speak for themselves; travel needs a reason. So Claude asks one question.</p>';
+      } },
+      { kind: 'ask', t: 'Claude asks, only here', s: 'One question, about five seconds', run: function (body, done) {
+        var q = 'Travel +18% on flat headcount: new client-visit policy, or flag it?';
+        body.innerHTML = askBox(q, [['policy', 'New client-visit policy'], ['flag', 'Flag it for the CFO']]);
+        bindOpts(body, function (o) {
+          var w = ST.wf[1]; w.a.travel = o; ST.secs += 5;
+          var rule = o === 'policy' ? 'Travel can grow with the client-visit policy that started in Q2. Flag only growth beyond it.' : 'Travel growing faster than headcount goes into the CFO summary as an action.';
+          addRule(rule, 'Head of Management Accounting', 'Workflow 1');
+          done(askDone(q, o === 'policy' ? 'New client-visit policy' : 'Flag it for the CFO', rule, 'Head of Management Accounting'));
+        });
+      } },
+      { kind: 'access', t: 'Needs access → learns next', s: 'One read-only request, with a live reason', run: function (body, done) {
+        var sys = 'Expense sub-ledger (travel and entertainment detail)', why = 'To split the +18% travel by trip purpose and cost center.';
+        body.innerHTML = accBox(sys, why);
+        bindOpts(body, function (o) {
+          var yes = o === 'yes', learned = 'accounting books travel to account 6420, charges it to the traveler&rsquo;s home cost center, and accrues it on the trip date. 61% of the increase is client visits by two coverage teams.';
+          ST.wf[1].a.acc = yes; ST.secs += 5;
+          if (yes) addAcc('Expense sub-ledger', 'for travel +18%', 'Travel: account 6420, home cost center, accrued on trip date');
+          done(accDone(sys, why, yes, learned, 'Claude carries on with the reports alone and marks the travel conclusion as partial evidence.'));
+        });
+      } },
+      { kind: 'auto', t: 'Draft the CFO summary', s: '80 reports → 5 cited as evidence → 3 conclusions, each with one action', btn: 'Draft the summary', run: async function (body) {
+        var funnel = function (c, k) { return '<div class="funnel"><b>80</b><span>reports</span><span>&rarr;</span><b class="hot fc">' + c + '</b><span>cited as evidence</span><span>&rarr;</span><b class="hot fk">' + k + '</b><span>conclusions</span></div>'; };
+        body.innerHTML = funnel('80', '&ndash;') + rgrid('read') + '<div class="citelist"></div>';
+        var tiles = $$('.rg', body), order = [];
+        for (var i = 0; i < 80; i++) if (!CITES[i]) order.push(i);
+        order.sort(function () { return Math.random() - 0.5; });
+        for (var j = 0; j < order.length; j++) { tiles[order[j]].classList.add('dim'); if (j % 5 === 4) { $('.fc', body).textContent = 80 - j - 1; await wait(30); } }
+        var cl = $('.citelist', body), ks = Object.keys(CITES);
+        for (var c = 0; c < ks.length; c++) { tiles[+ks[c]].classList.add('cite'); cl.insertAdjacentHTML('beforeend', '<span>' + esc(CITES[ks[c]]) + '</span>'); $('.fc', body).textContent = 5; await wait(260); }
+        await wait(300);
+        $('.fk', body).textContent = '3';
+        body.insertAdjacentHTML('beforeend', wf1Summary(ST.wf[1].a).replace('class="memo"', 'class="memo reveal"'));
+        await wait(1700);
+        return funnel('5', '3') + rgrid('cited') + citeList() + wf1Summary(ST.wf[1].a);
+      } }
+    ] },
+  2: { title: 'Balance-sheet substantiation', what: 'Before sign-off, prove every balance-sheet number. The general ledger says loans are $10.00bn; the loan system adds up to $9.96bn. Claude explains the $40m.', skill: ['loan-balance-substantiation', 'Loan balance substantiation'], nextHint: 'This workflow now needs ops bookings, loan servicing and the reserve model: reconciliation breaks, accruals and SEC/Fed adjustments come next.',
+    steps: [
+      { kind: 'auto', t: 'Load the Q3 trial balance and the loan-system extract', s: 'As of September 30, 2026', btn: 'Load and tie out', run: async function (body) {
+        body.innerHTML = tieTable('0.0', '0.0');
+        var a = $$('[data-ct]', body);
+        for (var f = 1; f <= 20; f++) { a.forEach(function (el) { el.textContent = fmt1(+el.dataset.ct * f / 20); }); await wait(30); }
+        return tieTable('10,000.0', '9,960.0');
+      } },
+      { kind: 'auto', t: 'Explain the $40m', s: 'Every break matched to a document, until nothing is left', btn: 'Find the breaks', run: async function (body) {
+        body.innerHTML = m2html(40, false, []) + '<p class="small m2s"><span class="typing"><i></i><i></i><i></i></span> Matching 41,206 loans to the ledger&hellip;</p>';
+        var fill = $('.m2fill', body), val = $('.m2v', body), chips = $('.m2chips', body), st = $('.m2s', body);
+        await wait(1100);
+        chips.insertAdjacentHTML('beforeend', M2C[0]); fill.style.width = (15 / 40 * 100) + '%'; countTo(val, 15, 1000, fmt1);
+        st.innerHTML = '<span class="typing"><i></i><i></i><i></i></span> Reading the delinquency report and the accrual schedule&hellip;';
+        await wait(1700);
+        chips.insertAdjacentHTML('beforeend', M2C[1]); fill.style.width = '0%'; countTo(val, 0, 1000, fmt1);
+        await wait(1200);
+        fill.classList.add('zero'); fill.style.width = '100%'; val.classList.add('zero'); val.innerHTML = '0.0 &#10003;'; st.textContent = 'Every break has a source.';
+        await wait(1200);
+        return m2html(0, true, M2C) + RECON + '<p class="small">Item 2 breaks a standard rule. Item 1 depends on this desk&rsquo;s cut-off rule, so Claude asks.</p>';
+      } },
+      { kind: 'ask', t: 'Claude asks, only here', s: 'The one thing the file can’t answer', run: function (body, done) {
+        var q = 'Repayment dated 9/30, cash on 10/1. Does this desk’s cut-off rule put it in Q3 or Q4?';
+        body.innerHTML = askBox(q, [['q3', 'Q3: the value date counts'], ['q4', 'Q4: the cash date counts']]);
+        bindOpts(body, function (o) {
+          ST.wf[2].a.cut = o; ST.secs += 5;
+          var rule = o === 'q3' ? 'Loan repayments belong to the quarter of their value date.' : 'Loan repayments belong to the quarter the cash arrives; value-date gaps are listed as timing items.';
+          addRule(rule, 'Controller, loan desk', 'Workflow 2');
+          done(askDone(q, o === 'q3' ? 'Q3: the value date counts' : 'Q4: the cash date counts', rule, 'Controller, loan desk'));
+        });
+      } },
+      { kind: 'access', t: 'Needs access → learns next', s: 'One read-only request, with a live reason', run: function (body, done) {
+        var sys = 'Reserve model and delinquency report', why = 'To confirm LN-40517 should be on non-accrual, and to check every other loan close to 90 days late.';
+        body.innerHTML = accBox(sys, why);
+        bindOpts(body, function (o) {
+          var yes = o === 'yes';
+          ST.wf[2].a.acc = yes; ST.secs += 5;
+          if (yes) addAcc('Reserve model and delinquency report', 'for the $15m accrual', 'Non-accrual starts at 90 days late; accrued interest is reversed');
+          done(accDone(sys, why, yes, 'loans stop accruing at 90 days late and accrued interest is reversed. Two more loans are at 84 and 88 days late ($1.2m accrued): watch them at month-end.', 'Claude proposes the reversal under the standard rule and flags it for the controller to confirm.'));
+        });
+      } },
+      { kind: 'auto', t: 'Draft the substantiation memo', s: 'Every break sourced, entries proposed, ready for sign-off', btn: 'Draft the memo', run: async function (body) {
+        body.innerHTML = '<p class="small"><span class="typing"><i></i><i></i><i></i></span> Writing the memo&hellip;</p>';
+        await wait(800);
+        return wf2Memo(ST.wf[2].a);
+      } }
+    ] },
+  3: { title: 'Actual vs plan: the translator', what: 'Compare actual spend with plan and explain every big gap. The math is easy. Chasing Marketing or HR for the reason, then translating it into accounting terms, is the slow part.', skill: ['variance-translator', 'Variance translator'], nextHint: 'This workflow now needs CRM, the HR roster and marketing spend: the revenue forecast, headcount plan and opex come next.',
+    steps: [
+      { kind: 'auto', t: 'Load this month’s actuals and the plan', s: 'September, by department', btn: 'Load', run: async function (body) {
+        body.innerHTML = '<p class="small"><span class="typing"><i></i><i></i><i></i></span> Loading actuals and plan&hellip;</p>';
+        await wait(600);
+        return avpTable() + '<p class="small">Rule: explain any gap over $1m. One line qualifies.</p>';
+      } },
+      { kind: 'auto', t: 'Flag the gap and draft a note in Marketing’s language', s: 'Marketing is $5.0m over plan', btn: 'Draft the note', run: async function (body) {
+        body.innerHTML = '<p class="small"><span class="typing"><i></i><i></i><i></i></span> Drafting&hellip;</p>';
+        await wait(700);
+        return MAIL;
+      } },
+      { kind: 'ask', t: 'Claude asks, only here', s: 'Before bothering another team', run: function (body, done) {
+        var q = 'Marketing is $5m over plan. Send them this note, or is it already explained?';
+        body.innerHTML = askBox(q, [['send', 'Send the note'], ['known', 'Already explained']]);
+        bindOpts(body, async function (o) {
+          ST.wf[3].a.ask = o; ST.secs += 5;
+          var rule, ans;
+          if (o === 'send') {
+            body.insertAdjacentHTML('beforeend', '<div class="chat"><div class="msg c"><b>Sent to Marketing</b>Note sent. Waiting for a reply <span class="typing"><i></i><i></i><i></i></span></div></div>');
+            await wait(1400);
+            rule = 'For marketing gaps over $1m, ask the marketing finance partner first. Events count as one-time unless they repeat.'; ans = 'Send the note';
+          } else {
+            rule = 'Read Marketing’s own monthly pack before asking them about a gap.'; ans = 'Already explained';
+          }
+          addRule(rule, 'FP&A lead', 'Workflow 3');
+          var reply = o === 'send' ? '<div class="chat"><div class="msg u"><b>Marketing replied</b>3 extra ABC events in August, approved for the Q4 pipeline push.</div></div>' : '<p class="small">Claude found it in Marketing&rsquo;s monthly pack: &ldquo;3 extra ABC events in August.&rdquo;</p>';
+          done(askDone(q, ans, rule, 'FP&A lead') + reply);
+        });
+      } },
+      { kind: 'auto', t: 'Write it into the book in accounting terms', s: 'Marketing’s words, translated line by line', btn: 'Write the commentary', run: async function (body) {
+        body.innerHTML = xlateHtml(false);
+        var ps = $$('.book p', body);
+        await wait(400);
+        for (var i = 0; i < XL_LINES.length; i++) {
+          var p = ps[i], txt = XL_LINES[i][1];
+          p.innerHTML = '<b>' + esc(XL_LINES[i][0]) + '</b> <span class="typing-caret"></span>';
+          var sp = $('span', p);
+          for (var c = 0; c <= txt.length; c += 3) { sp.textContent = txt.slice(0, c); await wait(22); }
+          sp.textContent = txt; sp.classList.remove('typing-caret'); await wait(250);
+        }
+        await wait(300);
+        return xlateHtml(true);
+      } },
+      { kind: 'access', t: 'Needs access → learns next', s: 'One read-only request, with a live reason', run: function (body, done) {
+        var sys = 'CRM campaign data', why = 'To check whether the 3 ABC events created any pipeline.';
+        body.innerHTML = accBox(sys, why);
+        bindOpts(body, function (o) {
+          var yes = o === 'yes';
+          ST.wf[3].a.acc = yes; ST.secs += 5;
+          if (yes) addAcc('CRM campaign data', 'for the $5m events', 'The 3 ABC events produced 0 new qualified leads');
+          done(accDone(sys, why, yes, 'the 3 ABC events produced 0 new qualified leads. That is Workflow 1&rsquo;s first conclusion, now with proof: cut them.', 'The commentary stands; the return on the events stays unchecked.'));
+        });
+      } }
+    ] }
+};
+
+/* ---------------- skill files ---------------- */
+function skillMd(id) {
+  var a1 = ST.wf[1].a, a2 = ST.wf[2].a, a3 = ST.wf[3].a;
+  if (id === 'monthly-driver-ranking') return '---\nname: monthly-driver-ranking\ndescription: Rank the month’s cost drivers across the management pack and draft the CFO summary. Use for the monthly management reporting cycle.\n---\n\n# Monthly driver ranking\n\n1. Read every report in the pack. Tie totals to the general ledger before ranking.\n2. Rank changes by dollar impact. Check each against what should drive it:\n   headcount for people costs, new leads for marketing, loan volume for lending costs.\n3. Flag anything growing faster than its driver.\n4. Confirmed rules:\n   - Travel: ' + (a1.travel === 'policy' ? 'can grow with the client-visit policy (from Q2); flag only growth beyond it.' : 'growth above headcount goes into the CFO summary as an action.') + '\n     Owner: Head of Management Accounting.\n' + (a1.acc ? '   - Travel is booked to account 6420, charged to the traveler’s home cost center,\n     accrued on the trip date (seen in the expense sub-ledger).\n' : '') + '5. Draft three conclusions. Each gets evidence (report IDs) and one action.\n\nLearned from: September cycle · 1 question · ' + (a1.acc ? '1 access grant' : 'no new access') + ' · 0 pages written by staff\n';
+  if (id === 'loan-balance-substantiation') return '---\nname: loan-balance-substantiation\ndescription: Substantiate the loans balance each quarter by tying the general ledger to the loan servicing system and sourcing every break. Use before balance-sheet sign-off.\n---\n\n# Loan balance substantiation\n\n1. Tie GL 1400 to the trial balance and the loan system total. Foot both.\n2. Match loan by loan. For each break, find the document: payment log, bank statement,\n   delinquency report, accrual schedule.\n3. Confirmed rules:\n   - Cut-off: ' + (a2.cut === 'q3' ? 'repayments belong to the quarter of their value date.' : 'repayments belong to the quarter the cash arrives; list value-date gaps as timing items.') + '\n     Owner: Controller, loan desk.\n   - Loans 90+ days late stop accruing; reverse accrued interest' + (a2.acc ? ' (confirmed in the reserve model).' : ' (controller to confirm).') + '\n4. Propose entries for each break. Nothing posts without the controller’s sign-off.\n5. Write the memo: balances, breaks, sources, entries, the adjusted tie-out.\n' + (a2.acc ? '6. Each month-end, list loans at 80+ days late before they cross 90.\n' : '') + '\nLearned from: Q3 close · 1 question · ' + (a2.acc ? '1 access grant' : 'no new access') + ' · 0 pages written by staff\n';
+  return '---\nname: variance-translator\ndescription: Explain every actual-vs-plan gap over $1m, ask the owning team in their own language, and write the answer into the book in accounting terms. Use each month after the close.\n---\n\n# Variance translator\n\n1. Load actuals and plan by department. Flag gaps over $1m.\n2. Confirmed rules:\n   - ' + (a3.ask === 'known' ? 'Read Marketing’s own monthly pack before asking them.' : 'For marketing gaps over $1m, ask the marketing finance partner first.\n     Events count as one-time unless they repeat.') + '\n     Owner: FP&A lead.\n3. Draft the question in the team’s words (events, campaigns, hires), not GL accounts.\n4. Translate the answer: amount vs plan, driver, one-time or recurring,\n   forecast impact, account and accounting treatment.\n' + (a3.acc ? '5. Check the return in the CRM before the next budget review.\n   (September: 3 ABC events, 0 new qualified leads.)\n' : '') + '\nLearned from: September cycle · 1 question · ' + (a3.acc ? '1 access grant' : 'no new access') + ' · 0 pages written by staff\n';
+}
+function openSkill(id) {
+  var s = ST.skills.filter(function (x) { return x.id === id; })[0]; if (!s) return;
+  $('#dr-title').textContent = s.t; $('#dr-sub').textContent = 'SKILL.md, written by Claude from the work it did. The owners confirmed every rule in it.';
+  $('#dr-body').textContent = skillMd(id); $('#drawer').hidden = false; $('#dr-close').focus();
+}
+$('#dr-close').addEventListener('click', function () { $('#drawer').hidden = true; });
+$('#drawer').addEventListener('click', function (e) { if (e.target.id === 'drawer') $('#drawer').hidden = true; });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#drawer').hidden) $('#drawer').hidden = true; });
+
+/* ---------------- run log ---------------- */
+function kindPill(sp, state) {
+  if (sp.kind === 'ask') return '<span class="pill ask">Claude asks</span>';
+  if (sp.kind === 'access') return '<span class="pill navy">Access</span>';
+  return state === 'done' ? '<span class="pill good">Done</span>' : '';
+}
+function complete(n, k, html) {
+  var w = ST.wf[n]; w.html[k] = html; w.i = k + 1;
+  if (w.i >= WF[n].steps.length) { addSkill(WF[n].skill[0], WF[n].skill[1]); toast('Packaged as a skill: ' + WF[n].skill[0]); }
+  renderWF(true); renderSide();
+}
+function activate(n, k, el) {
+  var sp = WF[n].steps[k], body = $('.stp-b', el);
+  function done(html) { complete(n, k, html); }
+  if (sp.kind === 'auto') {
+    body.innerHTML = '<div class="next-row"><button class="btn pri" type="button">' + esc(sp.btn) + '</button></div>';
+    $('button', body).addEventListener('click', async function () {
+      this.disabled = true; lastRect = this.getBoundingClientRect();
+      var html = await sp.run(body);
+      if (ST.cur !== n || ST.wf[n].i !== k) return;
+      done(html);
+    });
+  } else sp.run(body, done);
+}
+function renderWF(scroll) {
+  var n = ST.cur, W = WF[n], w = ST.wf[n], log = $('#runlog');
+  $('#wf-title').textContent = W.title; $('#wf-what').textContent = W.what;
+  log.innerHTML = '';
+  var act = null;
+  W.steps.forEach(function (sp, k) {
+    var state = k < w.i ? 'done' : k === w.i ? 'act' : 'todo';
+    var el = document.createElement('div');
+    el.className = 'stp ' + state + (sp.kind === 'ask' ? ' ask' : '');
+    el.innerHTML = '<div class="stp-h"><span class="i">' + (state === 'done' ? '&#10003;' : (k + 1)) + '</span><div><b>' + esc(sp.t) + '</b><small>' + esc(sp.s) + '</small></div>' + kindPill(sp, state) + '</div><div class="stp-b"' + (state === 'todo' ? ' hidden' : '') + '></div>';
+    log.appendChild(el);
+    if (state === 'done') $('.stp-b', el).innerHTML = w.html[k];
+    if (state === 'act') { activate(n, k, el); act = el; }
+  });
+  if (w.i >= W.steps.length) {
+    var fin = document.createElement('div'); fin.className = 'banner';
+    var nx = n < 3 ? '<button class="btn sm" type="button" id="wf-next" style="margin-left:8px">Next: workflow ' + (n + 1) + ' &rarr;</button>' : '<button class="btn sm" type="button" id="wf-next" style="margin-left:8px">Where to start &rarr;</button>';
+    fin.innerHTML = '<b>Workflow ' + n + ' done.</b> Packaged as the skill <span class="mono">' + W.skill[0] + '</span>. ' + esc(W.nextHint) + nx;
+    log.appendChild(fin); act = fin;
+    $('#wf-next').addEventListener('click', function () { if (n < 3) pick(n + 1, true); else show('where'); });
+  }
+  if (scroll && act && !REDUCED) { var r = act.getBoundingClientRect(); if (r.top > window.innerHeight - 120 || r.top < 100) act.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  updatePick();
+}
+function updatePick() {
+  $$('#wfpick button[data-w]').forEach(function (b) {
+    var n = +b.dataset.w, w = ST.wf[n], L = WF[n].steps.length;
+    b.setAttribute('aria-pressed', n === ST.cur ? 'true' : 'false');
+    b.innerHTML = n === ST.cur ? 'Running below &darr;' : 'Run it live &darr;';
+    $('#wfs-' + n).innerHTML = w.i >= L ? '<span class="done">&#10003; Done</span>' : w.i ? 'Step ' + (w.i + 1) + ' of ' + L : 'Not started';
+  });
+}
+function pick(n, jump) {
+  ST.cur = n; renderWF(false);
+  var p = $('#wf-panel'), r = p.getBoundingClientRect();
+  if (jump || r.top < 0) window.scrollTo({ top: window.scrollY + r.top - 124, behavior: REDUCED ? 'auto' : 'smooth' });
+}
+$$('#wfpick .wfc').forEach(function (c) { c.addEventListener('click', function () { pick(+c.dataset.w, true); }); });
+$$('.cmpbar button').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var on = b.getAttribute('aria-pressed') !== 'true';
+    $$('.cmpbar button').forEach(function (x) { x.setAttribute('aria-pressed', x === b && on ? 'true' : 'false'); });
+    $('#wfpick').classList.toggle('cmp', on);
+    $$('#wfpick .wfc-s').forEach(function (s) { s.classList.toggle('hl', on && s.dataset.row === b.dataset.row); });
+  });
+});
+
+/* ---------------- side panel ---------------- */
+function renderSide() {
+  $('#c-rules b').textContent = ST.rules.length; $('#c-acc b').textContent = ST.acc.length + 1; $('#c-skills b').textContent = ST.skills.length;
+  $('#c-time').textContent = 'Staff time so far: ' + ST.secs + ' seconds, all yes/no answers';
+  $('#l-rules').innerHTML = ST.rules.length ? ST.rules.map(function (r) { return '<div class="li">' + esc(r.t) + '<small>Owner: ' + esc(r.o) + ' &middot; ' + esc(r.f) + '</small></div>'; }).join('') : '<p class="empty">None yet. Claude asks only when the work needs it.</p>';
+  $('#l-acc').innerHTML = '<div class="li">Monthly management reports<small>Day 1 &middot; shared for the demo</small></div>' + ST.acc.map(function (a) { return '<div class="li">' + esc(a.n) + '<small>Read-only &middot; ' + esc(a.why) + ' &middot; learned: ' + esc(a.l) + '</small></div>'; }).join('');
+  $('#l-skills').innerHTML = ST.skills.length ? ST.skills.map(function (s) { return '<button class="li" type="button" data-sk="' + s.id + '"><span class="sk">' + s.id + '</span><small>' + esc(s.t) + ' &middot; click to read SKILL.md</small></button>'; }).join('') : '<p class="empty">Packaged when a workflow finishes. Click one to read it.</p>';
+  $$('#l-skills [data-sk]').forEach(function (b) { b.addEventListener('click', function () { openSkill(b.dataset.sk); }); });
+  $('#replay').disabled = ST.rules.length < 2;
+  runFlights();
+}
+$('#replay').addEventListener('click', async function () {
+  var n = ST.rules.length, items = n * 5;
+  $('#replay-out').innerHTML = '<span class="typing"><i></i><i></i><i></i></span> Replaying ' + n + ' rules on Q2&hellip;';
+  await wait(1000);
+  $('#replay-out').innerHTML = '<b style="color:var(--good)">Matched the team&rsquo;s own answers on ' + (items - 1) + ' of ' + items + ' Q2 items.</b> 1 sent back to its owner to review before the rules go live. (Sample.)';
+});
+
+/* ---------------- reset + boot ---------------- */
+$('#reset').addEventListener('click', function () {
+  ST = fresh(); flyQ = []; lastRect = null; renderWF(false); renderSide(); whoTok++; whoPlayed = false; whoStage = 0; renderWho(0, false);
+  $('#replay-out').textContent = ''; $('#drawer').hidden = true;
+  chatTok++; $$('#chat1 .typing-b').forEach(function (x) { x.remove(); }); $$('#chat1 .msg').forEach(function (m) { m.hidden = false; var t = $('.t', m); if (t && t.dataset.full) { t.textContent = t.dataset.full; t.classList.remove('streaming'); } });
+  toast('Demo reset');
+});
+renderWF(false); renderSide();
+var h0 = (location.hash || '').replace('#', '');
+show(VIEWS.indexOf(h0) >= 0 ? h0 : 'method', true);
+window.addEventListener('hashchange', function () { var h = (location.hash || '').replace('#', ''); if (VIEWS.indexOf(h) >= 0) show(h, true); });
+})();
+</script>
+
+</body></html>
